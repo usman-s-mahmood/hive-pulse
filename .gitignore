@@ -1,0 +1,7 @@
+virt/
+.vscode/
+.vs/
+migrations/
+misc/
+secrets.json
+
