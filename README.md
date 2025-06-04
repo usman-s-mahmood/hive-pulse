@@ -6,10 +6,13 @@
 
 ```
 {
-    "db_pass": "password for DB hosted on console.aiven.io"
+    "db_pass": "db_password",
+    "db_user": "db_user",
+    "db_name": "db_name",
+    "db_host": "db_host",
+    "db_port": "db_port_as_string_even_if_it_is_a_number"
 }
 ```
-
 
 project structure
 

@@ -80,22 +80,40 @@ WSGI_APPLICATION = 'HivePulse.wsgi.application'
 with open(BASE_DIR / "secrets.json") as f:
     secrets = json.load(f)
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': secrets['db_name'],           
+#         'USER': secrets['db_user'],            
+#         'PASSWORD': secrets["db_pass"],
+#         'HOST': secrets['db_host'],
+#         'PORT': secrets['db_port'],               
+#         'OPTIONS': {
+#             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+#             'ssl': {
+#                 'ca': os.path.join(BASE_DIR, 'aiven-ca.pem'),
+#             }
+#         },
+#     }
+# }
+
+# use this command to run local mariaDB instance: sudo /opt/mariadb/bin/mysqld_safe --datadir=/opt/mariadb/data --port=3310 &
+# use this command to create dump with sql and data of local db to use it in production DB: /opt/mariadb/bin/mysqldump -u root -p --port=3310 -h 127.0.0.1 hivepulse > hivepulse_dump.sql
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'defaultdb',           
-        'USER': 'avnadmin',            
-        'PASSWORD': secrets["db_pass"],
-        'HOST': 'mysql-hive-pulse-usm-1660.j.aivencloud.com',
-        'PORT': '13349',               
+        'NAME': 'hivepulse',           
+        'USER': 'root',            
+        'PASSWORD': '',
+        'HOST': '127.0.0.1',
+        'PORT': '3310',               
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-            'ssl': {
-                'ca': os.path.join(BASE_DIR, 'aiven-ca.pem'),
-            }
         },
     }
 }
+
 
 
 # Password validation
