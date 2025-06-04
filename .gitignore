@@ -4,4 +4,4 @@ virt/
 migrations/
 misc/
 secrets.json
-
+aiven-ca.pem
