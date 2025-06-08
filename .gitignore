@@ -4,5 +4,6 @@ virt/
 migrations/
 misc/
 secrets.json
+.env
 aiven-ca.pem
 __pycache__/

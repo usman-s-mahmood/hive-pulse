@@ -20,9 +20,14 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('MoviesApp.urls'), name='movies-url')
+    path('hive-pulse-admin-panel/', admin.site.urls),
+    path('', include('BlogApp.urls'), name='blog-urls'),
+    path('auth/', include('AuthApp.urls'), name='auth-urls'),
 ]
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+admin.site.site_header = 'Hive Pulse'
+admin.site.index_title = 'Hive Pulse Admin Panel'
+admin.site.site_title = 'CMS Admin Panel'

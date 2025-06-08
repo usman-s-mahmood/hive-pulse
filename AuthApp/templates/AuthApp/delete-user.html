@@ -1,0 +1,30 @@
+{% extends "BlogApp/base.html" %}
+
+{% block body %}
+
+<!-- Header Start -->
+<div class="container-fluid bg-breadcrumb">
+    <div class="container text-center py-5" style="max-width: 900px;">
+        <h4 class="text-white display-4 mb-4 wow fadeInDown" data-wow-delay="0.1s">Delete Account</h4>
+        <ol class="breadcrumb d-flex justify-content-center mb-0 wow fadeInDown" data-wow-delay="0.3s">
+            <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+            <li class="breadcrumb-item text-primary">Auth</li>
+            <li class="breadcrumb-item active text-primary">Delete Account</li>
+        </ol>    
+    </div>
+</div>
+<!-- Header End -->
+
+    <div class="container">
+        <hr>
+            <p class="fs-1 text-center"><strong class="text-secondary">Are you sure you want to delete your account permanently!</strong></p>
+        <hr>
+        <div class="container">
+            <form action="" method=POST class="btn-group text-center form-control">
+                {% csrf_token %}
+                <button class="btn btn-danger me-2">Yes</button>
+                <a href="/" class="btn btn-success">No</a>
+            </form>
+        </div>
+    </div>
+{% endblock body %}

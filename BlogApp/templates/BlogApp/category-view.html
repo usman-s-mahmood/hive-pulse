@@ -1,0 +1,84 @@
+{% extends "BlogApp/base.html" %}
+
+{% block body %}
+    <!-- Header Start -->
+    <div class="container-fluid bg-breadcrumb">
+        <div class="container text-center py-5" style="max-width: 900px;">
+            <h4 class="text-white display-4 mb-4 wow fadeInDown" data-wow-delay="0.1s">Blog Categories</h4>
+            <ol class="breadcrumb d-flex justify-content-center mb-0 wow fadeInDown" data-wow-delay="0.3s">
+                <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+                <li class="breadcrumb-item active text-primary">{{category}}</li>
+            </ol>    
+        </div>
+    </div>
+    <!-- Header End -->
+
+    <div class="container">
+        <hr>
+            <p class="fs-1 text-center"><strong class="text-secondary">Category: {{category}}</strong></p>
+        <hr>
+        <div class="row">
+            <div class="col-md-8">
+                {% for post in posts %}
+                    <a href="/post-view/{{post.title|slugify}}/{{post.id}}">
+                        <div class="form-control">
+                            <div class="row">
+                                <div class="container">
+                                    {% if post.thumbnail == '' %}
+                                        <img src="/media/default-img/default-post.png" alt="{{post_query.title}}" class = "img-fluid" width = "1280px">
+                                    {% else %}
+                                        <img src="/media/{{post.thumbnail}}" alt="{{post_query.title}}" class = "img-fluid" width = "1280px">
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="row">
+                                <p class="fs-3"><strong class="text-center"><span class="text-secondary">{{post.title}}</span></strong></p>
+                                <p class="fs-5"><strong class="text-center"><span class="text-secondary">{{post.tagline|slice:":20"}}...</span></strong></p>
+                            </div>
+                            <div class="text-center mt-1">
+                                <a href="/post-view/{{post.title|slugify}}/{{post.id}}" class="btn btn-primary">Read More</a>
+                                {% if post.author == user or user.is_superuser %}
+                                    <a href="/edit-post/{{post.title|slugify}}/{{post.id}}" class="btn btn-primary">Edit Post</a>
+                                    <a href="/delete-post/{{post.id}}" class="btn btn-primary">Delete Post</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </a>
+                    <br>
+                {% endfor %}
+                <div class="container text-center">
+                    {% if posts.has_previous %}
+                        <a href="?page={{posts.previous_page_number}}" class="btn btn-primary me-2">Previous</a>
+                    {% endif %}
+                    {% if posts.has_next %}
+                        <a href="?page={{posts.next_page_number}}" class="btn btn-primary">Next</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-4">
+                <hr>
+                    <form action="/search" class="d-flex" method=POST>
+                        {% csrf_token %}
+                        <input type="text" class="form-control me-2" name="searched" placeholder="Search ...">
+                        <button class="btn btn-primary" type="submit">Search</button>
+                    </form>
+                <hr>
+                    <p class="fs-4"><strong class="text-secondary">Categories</strong></p>
+                    {% for category in categories %}
+                        <a href="/category/{{category.name|slugify}}" class="nav-item nav-link">{{category.name}}</a>
+                    {% endfor %}
+                <hr>
+                    <p class="fs-4"><strong class="text-secondary">Newsletter</strong></p>
+                    <form action="/newsletter" method=POST>
+                        {% csrf_token %}
+                        <div class="position-relative mx-auto" style="max-width: 400px;">
+                            <input class="form-control bg-transparent w-100 py-3 ps-4 pe-5" type="text" placeholder="Your email" name = "email">
+                            <button type="submit" class="btn btn-primary py-2 position-absolute top-0 end-0 mt-2 me-2">SignUp</button>
+                        </div>
+                    </form>
+                <hr>
+            </div>
+        </div>
+    </div>
+
+{% endblock body %}

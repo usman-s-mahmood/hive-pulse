@@ -13,19 +13,23 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 import json
+from decouple import config
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+with open(BASE_DIR / "secrets.json") as f:
+    secrets = json.load(f)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-bxp^k%eveuh3-i=wup31j9xgvy+8*igal-jen3clf08=s9-sg+'
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG')
 
 ALLOWED_HOSTS = []
 
@@ -42,6 +46,7 @@ INSTALLED_APPS = [
     'AuthApp',
     'BlogApp',
     'MoviesApp',
+    'ckeditor',
 ]
 
 MIDDLEWARE = [
@@ -77,42 +82,41 @@ WSGI_APPLICATION = 'HivePulse.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-with open(BASE_DIR / "secrets.json") as f:
-    secrets = json.load(f)
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': secrets['db_name'],           
-#         'USER': secrets['db_user'],            
-#         'PASSWORD': secrets["db_pass"],
-#         'HOST': secrets['db_host'],
-#         'PORT': secrets['db_port'],               
-#         'OPTIONS': {
-#             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-#             'ssl': {
-#                 'ca': os.path.join(BASE_DIR, 'aiven-ca.pem'),
-#             }
-#         },
-#     }
-# }
-
-# use this command to run local mariaDB instance: sudo /opt/mariadb/bin/mysqld_safe --datadir=/opt/mariadb/data --port=3310 &
-# use this command to create dump with sql and data of local db to use it in production DB: /opt/mariadb/bin/mysqldump -u root -p --port=3310 -h 127.0.0.1 hivepulse > hivepulse_dump.sql
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'hivepulse',           
-        'USER': 'root',            
-        'PASSWORD': '',
-        'HOST': '127.0.0.1',
-        'PORT': '3310',               
+        'NAME': config("DB_NAME"),           
+        'USER': config("DB_USER"),            
+        'PASSWORD': config("DB_PASSWORD"),
+        'HOST': config("DB_HOST"),
+        'PORT': config("DB_PORT"),               
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            'ssl': {
+                'ca': os.path.join(BASE_DIR, 'aiven-ca.pem'),
+            }
         },
     }
 }
+
+# use this command to run local mariaDB instance: sudo /opt/mariadb/bin/mysqld_safe --datadir=/opt/mariadb/data --port=3310 &
+# use this command to create dump with sql and data of local db to use it in production DB: /opt/mariadb/bin/mysqldump -u root -p --port=3310 -h 127.0.0.1 hivepulse > hivepulse_dump.sql
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'hivepulse',           
+#         'USER': 'root',            
+#         'PASSWORD': '',
+#         'HOST': '127.0.0.1',
+#         'PORT': '3310',               
+#         'OPTIONS': {
+#             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+#         },
+#     }
+# }
 
 
 
@@ -162,3 +166,27 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # setup for uploading media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# ckeditor configurations
+CKEDITOR_CONFIGS = {
+    'default': {
+        'toolbar': 'full',
+        # 'height': '720px',
+        # 'width': "640px",
+    },
+}
+
+LOGIN_URL = 'login_page'
+LOGOUT_REDIRECT_URL =  '/auth/login'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = config('EMAIL_HOST')
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = config("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
+
+DEFAULT_FROM_EMAIL = config("EMAIL_HOST_USER")
+
+
+

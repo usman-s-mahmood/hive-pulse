@@ -1,0 +1,93 @@
+{% extends "BlogApp/base.html" %}
+
+{% block body %}
+<!-- Header Start -->
+<div class="container-fluid bg-breadcrumb">
+    <div class="container text-center py-5" style="max-width: 900px;">
+        <h4 class="text-white display-4 mb-4 wow fadeInDown" data-wow-delay="0.1s">Blog Post Detail</h4>
+        <ol class="breadcrumb d-flex justify-content-center mb-0 wow fadeInDown" data-wow-delay="0.3s">
+            <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+            <li class="breadcrumb-item active text-primary">/post-view/{{post_query.title|slugify}}/{{post_query.id}}</li>
+        </ol>    
+    </div>
+</div>
+<!-- Header End -->
+
+    <div class="container">
+        <hr>
+            <p class="fs-1 text-center"><strong class="text-secondary">{{post_query.title}}</strong></p>
+        <hr>
+        <div class="row">
+            <div class="col-md-8">
+                <div class="container">
+                    {% if post_query.thumbnail == '' %}
+                        <img src="/media/default-img/default-post.png" alt="{{post_query.title}}" class = "img-fluid" width = "1280px">
+                    {% else %}
+                        <img src="/media/{{post_query.thumbnail}}" alt="{{post_query.title}}" class = "img-fluid" width = "1280px">
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <hr>
+                        <p class="fs-4">Tagline: <strong>{{post_query.tagline}}</strong></p>
+                        <p class="fs-4">Category: <strong>{{post_query.category}}</strong>
+                        </p>
+                        <p class="fs-4">Author: <strong>{{post_query.author.username}}</strong></p>
+                        <p class="fs-4">Posted On: <strong>{{post_query.date_posted}}</strong></p>
+                    <hr>
+                </div>
+                <div class="container">
+                    {{post_query.content|safe}}
+                </div>
+                <hr>
+                    <div class="text-center card">
+                        <div class="row">
+                            <div class="col-md-4">
+                                {% if post_query.author.profile %}
+                                    {% if post_query.author.profile.profile_pic %}
+                                        <img src="{{post_query.author.profile.profile_pic.url}}" alt="{{post_query.author.username}}" width="200px" class="img-fluid">
+                                    {% else %}
+                                        <img src="/media/default-img/default-user.jpg" alt="{{post_query.author.username}}" width="200px" class="img-fluid">
+                                    {% endif %}
+                                {% else %}
+                                    <img src="/media/default-img/default-user.jpg" alt="{{post_query.author.username}}" width="200px" class="img-fluid">
+                                {% endif %}
+                            </div>
+                            <div class="col-md-8 p-5">
+                                <p class="fs-3 text-center"><strong class="text-secondary">{{post_query.author.username}}</strong></p>
+                                {% if post_query.author.profile %}
+                                    <p class="fs-6 text-center"><strong class="text-secondary">{{post_query.author.profile.about_user}}</strong></p>
+                                {% else %}
+                                    <p class="fs-6 text-center"><strong class="text-secondary">Nothing to show about this user</strong></p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                <hr>
+            </div>
+            <div class="col-md-4">
+                <hr>
+                    <form action="/search" class="d-flex" method=POST>
+                        {% csrf_token %}
+                        <input type="text" class="form-control me-2" name="searched" placeholder="Search ...">
+                        <button class="btn btn-primary" type="submit">Search</button>
+                    </form>
+                <hr>
+                    <p class="fs-4"><strong class="text-secondary">Categories</strong></p>
+                    {% for category in categories %}
+                        <a href="/category/{{category.name|slugify}}" class="nav-item nav-link">{{category.name}}</a>
+                    {% endfor %}
+                <hr>
+                    <p class="fs-4"><strong class="text-secondary">Newsletter</strong></p>
+                    <form action="/newsletter" method=POST>
+                        {% csrf_token %}
+                        <div class="position-relative mx-auto" style="max-width: 400px;">
+                            <input class="form-control bg-transparent w-100 py-3 ps-4 pe-5" type="text" placeholder="Your email" name = "email">
+                            <button type="submit" class="btn btn-primary py-2 position-absolute top-0 end-0 mt-2 me-2">SignUp</button>
+                        </div>
+                    </form>
+                <hr>
+            </div>
+        </div>
+    </div>
+
+{% endblock body %}

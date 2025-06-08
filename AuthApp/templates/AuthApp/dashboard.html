@@ -1,0 +1,119 @@
+{% extends "BlogApp/base.html" %}
+
+{% block body %}
+<!-- Header Start -->
+<div class="container-fluid bg-breadcrumb">
+    <div class="container text-center py-5" style="max-width: 900px;">
+        <h4 class="text-white display-4 mb-4 wow fadeInDown" data-wow-delay="0.1s">Dashboard</h4>
+        <ol class="breadcrumb d-flex justify-content-center mb-0 wow fadeInDown" data-wow-delay="0.3s">
+            <li class="breadcrumb-item"><a href="index.html">Home</a></li>
+            <li class="breadcrumb-item text-primary">Auth</li>
+            <li class="breadcrumb-item active text-primary">Dashboard</li>
+        </ol>    
+    </div>
+</div>
+<!-- Header End -->
+    <div class="container">
+        <hr>
+            <p class="fs-1 text-center"><strong class="text-secondary">Welcome To User Dashboard: {{user.username}}</strong></p>
+        <hr>
+        <div class="row">
+            <div class="col-md-2 card p-1">
+                <div class="container text-center">
+                    {% if user.profile %}
+                        {% if user.profile.profile_pic %}
+                            <img src="{{user.profile.profile_pic.url}}" alt="{{user.username}}" class="img-fluid" width="720px">
+                        {% else %}
+                            <img src="/media/default-img/default-user.jpg" alt="{{user.username}}" class="img-fluid" width="720px">
+                        {% endif %}
+                    {% else %}
+                        <img src="/media/default-img/default-user.jpg" alt="{{user.username}}" class="img-fluid" width="720px">
+                    {% endif %}
+                    {% comment %} <div class="d-flex"> {% endcomment %}
+                        <a href="/add-post" class="btn btn-primary mt-2">Add Post</a>
+                        <a href="/auth/edit-user" class="btn btn-primary mt-2">Edit Account</a>
+                        {% if user.profile %}
+                            <a href="/auth/edit-profile" class="btn btn-primary mt-2">Edit Profile</a>
+                        {% endif %}
+                        <a href="/auth/delete-user" class="btn btn-primary mt-2">Delete Account</a>
+                    {% comment %} </div> {% endcomment %}
+                </div>
+            </div>
+            <div class="col-md-10">
+                <div class="container">
+                    <div class="form-control">
+                        <p class="fs-5 text-center"><strong>User Account Details</strong></p>
+                        <p class="fs-6 text-center">Name: <strong>{{user.first_name}} {{user.last_name}}</strong></p>
+                        <p class="fs-6 text-center">Email: <strong>{{user.email}}</strong></p>
+                        <p class="fs-6 text-center">Date Joined: <strong>{{user.date_joined}}</strong></p>
+                        <p class="fs-6 text-center">Last Login: <strong>{{user.last_login}}</strong></p>
+                        <hr>
+                        <p class="fs-5 text-center"><strong>User Profile Details</strong></p>
+                        {% if user.profile %}
+                            <p class="fs-6 text-center">About User: <strong class="text-secondary">{{user.profile.about_user}}</strong></p>
+                            {% if user.profile.social_link %}
+                                <p class="fs-6 text-center">Social Link: <strong class="text-secondary">{{user.profile.social_link}}</strong></p>
+                            {% endif %}
+                        {% else %}
+                            <p class="fs-6 text-center"><strong class="text-secondary">No profile created yet! Create Now</strong></p>
+                            <div class="text-center">
+                                <a href="/auth/create-profile" class="btn btn-primary">Create Profile</a>                        
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br>
+    <div class="container">
+        <hr>
+            <p class="fs-1 text-center"><strong class="text-secondary">Posts by: {{user.username}}</strong></p>
+        <hr>
+        {% if not posts %}
+            <div class="text-center">
+                <p class="fs-3 text-center"><strong class="text-secondary">No posts by: {{user.username}}, add your first post now!</strong></p>        
+                <a href="/add-post" class="btn btn-primary">Add Post</a>
+            </div>
+        {% endif %}
+        <div class="row">
+        {% for post in posts %}
+            <div class="col-md-6">
+                <a href="/post-view/{{post.title|slugify}}/{{post.id}}">
+                    <div class="form-control">
+                        <div class="row">
+                            <div class="container">
+                                {% if post.thumbnail == '' %}
+                                    <img src="/media/default-img/default-post.png" alt="{{post.title}}" class = "img-fluid" width = "720px">
+                                {% else %}
+                                    <img src="/media/{{post.thumbnail}}" alt="{{post.title}}" class = "img-fluid" width = "1280px">
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <p class="fs-3"><strong class="text-center"><span class="text-secondary">{{post.title}}</span></strong></p>
+                            <p class="fs-5"><strong class="text-center"><span class="text-secondary">{{post.tagline|slice:":20"}}...</span></strong></p>
+                        </div>
+                        <div class="text-center mt-1">
+                            <a href="/post-view/{{post.title|slugify}}/{{post.id}}" class="btn btn-primary">Read More</a>
+                            {% if post.author == user or user.is_superuser %}
+                                <a href="/edit-post/{{post.title|slugify}}/{{post.id}}" class="btn btn-primary">Edit Post</a>
+                                <a href="/delete-post/{{post.id}}" class="btn btn-primary">Delete Post</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+            </div>
+        {% endfor %}
+        </div>
+    </div>
+    <div class="container text-center mt-3">
+        {% if posts.has_previous %}
+            <a href="?page={{posts.previous_page_number}}" class="btn btn-primary me-2">Previous</a>
+        {% endif %}
+        {% if posts.has_next %}
+            <a href="?page={{posts.next_page_number}}" class="btn btn-primary me-2">Next</a>
+        {% endif %}
+    </div>
+
+{% endblock body %}

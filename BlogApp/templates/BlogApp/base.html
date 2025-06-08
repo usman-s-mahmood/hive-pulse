@@ -3,7 +3,7 @@
 
     <head>
         <meta charset="utf-8">
-        <title>Electra - Electrical Website Template</title>
+        <title>HivePulse - Reviews for Movies & T.V. Shows</title>
         <meta content="width=device-width, initial-scale=1.0" name="viewport">
         <meta content="" name="keywords">
         <meta content="" name="description">
@@ -18,12 +18,12 @@
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
 
         <!-- Libraries Stylesheet -->
-        <link rel="stylesheet" href="/static/MoviesApp/lib/animate/animate.min.css"/>
-        <link href="/static/MoviesApp/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="/static/BlogApp/lib/animate/animate.min.css"/>
+        <link href="/static/BlogApp/lib/owlcarousel/assets/owl.carousel.min.css" rel="stylesheet">
 
 
         <!-- Customized Bootstrap Stylesheet -->
-        <link href="/static/MoviesApp/css/bootstrap.min.css" rel="stylesheet">
+        <link href="/static/BlogApp/css/bootstrap.min.css" rel="stylesheet">
 
         <!-- Toastr CSS from CDN -->
         <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" rel="stylesheet">
@@ -34,7 +34,9 @@
         <!-- Toastr JS from CDN -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
 
-        <link rel="stylesheet" href="/static/MoviesApp/css/style.css">
+        <link rel="stylesheet" href="/static/BlogApp/css/style.css">
+
+        <link rel="shortcut icon" href="/static/BlogApp/img/favicon.ico" type="image/x-icon">
     </head>
 
     <body>
@@ -56,7 +58,7 @@
                 <div class="container d-flex align-items-center ">
                     <div class="d-flex align-items-center ">
                         <a href="#" class="navbar-brand" style="height: 125px;">
-                            <h1 class="text-primary mb-0"><i class="fas fa-bolt"></i> Electra</h1>
+                            <h1 class="text-primary mb-0"><i class="fas fa-bolt"></i> Hive Pulse</h1>
                             <!-- <img src="img/logo.png" alt="Logo"> -->
                         </a>
                     </div>
@@ -99,7 +101,7 @@
                         <div class="nav-bar px-0 py-lg-0" style="height: 80px;">
                             <nav class="navbar navbar-expand-lg navbar-light d-flex justify-content-lg-end">
                                 <a href="#" class="navbar-brand-2">
-                                    <h1 class="text-primary mb-0"><i class="fas fa-bolt"></i> Electra</h1>
+                                    <h1 class="text-primary mb-0"><i class="fas fa-bolt"></i> Hive Pulse</h1>
                                     <!-- <img src="img/logo.png" alt="Logo"> -->
                                 </a>  
                                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
@@ -111,6 +113,29 @@
                                         <a href="/" class="nav-item nav-link {% if index %}active{% endif %}">Home</a>
                                         <a href="/about" class="nav-item nav-link {% if about %}active{% endif %}">About</a>
                                         <a href="/blog" class="nav-item nav-link">Blog</a>
+                                        {% if user.is_authenticated %}
+                                        <div class="nav-item dropdown">
+                                            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">User Options</a>
+                                            <div class="dropdown-menu border-0 m-0">
+                                                <a href="/auth/dashboard" class="dropdown-item">Dashboard</a>
+                                                <a href="/auth/edit-user" class="dropdown-item">Edit Account</a>
+                                                <a href="/auth/edit-password" class="dropdown-item">Edit Password</a>
+                                                {% if user.profile %}
+                                                    <a href="/auth/edit-profile" class="dropdown-item">Edit Profile</a>
+                                                {% else %}
+                                                    <a href="/auth/create-profile" class="dropdown-item">Create Profile</a>
+                                                {% endif %}
+                                                {% if user.is_superuser %}
+                                                    <a href="/hive-pulse-admin-panel" class="dropdown-item">Admin Panel</a>
+                                                {% endif %}
+                                                <a href="/auth/logout" class="dropdown-item">Logout</a>
+                                            </div>
+                                        </div>
+                                        <a href="/auth/logout" class="nav-item nav-link">Logout</a>
+                                    {% else %}
+                                        <a href="/auth/login" class="nav-item nav-link">Login</a>
+                                        <a href="/auth/register" class="nav-item nav-link">Register</a>
+                                    {% endif %}
                                         {% comment %} <div class="nav-item dropdown">
                                             <a href="#" class="nav-link" data-bs-toggle="dropdown">
                                                 <span class="dropdown-toggle">Pages</span>
@@ -164,31 +189,7 @@
     
     {% block body %}
     {% endblock body %}
-    <script>
-        
-        toastr.options = {
-            "closeButton": true,
-            "debug": false,
-            "newestOnTop": true,
-            "progressBar": true,
-            "positionClass": "toast-top-right",  
-            "preventDuplicates": true,
-            "onclick": null,
-            "showDuration": "300",
-            "hideDuration": "1000",
-            "timeOut": "5000",  
-            "extendedTimeOut": "1000",
-            "showEasing": "swing",
-            "hideEasing": "linear",
-            "showMethod": "fadeIn",
-            "hideMethod": "fadeOut"
-        };
-        {% if messages %}
-            {% for message in messages %}
-                toastr.{{message.extra_tags}}("{{ message }}");
-            {% endfor %}
-        {% endif %}
-    </script>
+    {% include "BlogApp/toastr.html" %}
 
 </div>
 
@@ -216,7 +217,7 @@
                     <div class="col-md-6 col-lg-6 col-xl-3">
                         <div class="footer-item d-flex flex-column">
                             <div class="footer-item">
-                                <h3 class="text-white mb-4"><i class="fas fa-bolt text-primary me-3"></i>Electra</h3>
+                                <h3 class="text-white mb-4"><i class="fas fa-bolt text-primary me-3"></i>Hive Pulse</h3>
                                 <p class="mb-3">Dolor amet sit justo amet elitr clita ipsum elitr est.Lorem ipsum dolor sit amet, consectetur adipiscing elit consectetur adipiscing elit.</p>
                             </div>
                         </div>
@@ -262,7 +263,7 @@
             <div class="container">
                 <div class="row g-4 align-items-center">
                     <div class="col-md-6 text-center text-md-start mb-md-0">
-                        <span class="text-body"><a href="#" class="border-bottom text-white"><i class="fas fa-copyright text-light me-2"></i>Your Site Name</a>, &copy; All right reserved <span id="year-tag"></span>.</span>
+                        <span class="text-body"><a href="#" class="border-bottom text-white"><i class="fas fa-copyright text-light me-2"></i>Hive Pulse</a>, &copy; All right reserved <span id="year-tag"></span>.</span>
                     </div>
                     <div class="col-md-6 text-center text-md-end text-body">
                         
@@ -280,14 +281,14 @@
         <!-- JavaScript Libraries -->
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="/static/MoviesApp/lib/wow/wow.min.js"></script>
-        <script src="/static/MoviesApp/lib/easing/easing.min.js"></script>
-        <script src="/static/MoviesApp/lib/waypoints/waypoints.min.js"></script>
-        <script src="/static/MoviesApp/lib/owlcarousel/owl.carousel.min.js"></script>
+        <script src="/static/BlogApp/lib/wow/wow.min.js"></script>
+        <script src="/static/BlogApp/lib/easing/easing.min.js"></script>
+        <script src="/static/BlogApp/lib/waypoints/waypoints.min.js"></script>
+        <script src="/static/BlogApp/lib/owlcarousel/owl.carousel.min.js"></script>
         
 
         <!-- Template Javascript -->
-        <script src="/static/MoviesApp/js/main.js"></script>
+        <script src="/static/BlogApp/js/main.js"></script>
         <script>
             document.getElementById('year-tag').innerHTML = new Date().getFullYear();
         </script>

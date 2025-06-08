@@ -1,0 +1,26 @@
+{% extends "BlogApp/base.html" %}
+
+{% block body %}
+
+<!-- Page Header Start -->
+<div class="container-fluid page-header py-5 mb-5 wow fadeIn" data-wow-delay="0.1s">
+    <div class="container py-5">
+        <h1 class="display-1 text-white animated slideInDown">Account Activated!</h1>
+        <nav aria-label="breadcrumb animated slideInDown">
+            <ol class="breadcrumb text-uppercase mb-0">
+                <li class="breadcrumb-item"><a class="text-white" href="/">Home</a></li>
+                <li class="breadcrumb-item text-primary active" aria-current="page">Register</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+<!-- Page Header End -->
+
+    <div class="container">
+        <hr>
+            <p class="fs-1 text-center"><strong class="text-secondary">Your Account Has been activated Successfully! You can now login</strong></p>
+        <hr>
+        <a href="/auth/login" class="btn btn-lg btn-primary">Login</a>
+    </div>
+
+{% endblock body %}
