@@ -11,16 +11,16 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-import os
+import os, base64
 import json
 from decouple import config
-
+from imagekitio import ImageKit
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-with open(BASE_DIR / "secrets.json") as f:
-    secrets = json.load(f)
+# with open(BASE_DIR / "secrets.json") as f:
+#     secrets = json.load(f)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -82,7 +82,17 @@ WSGI_APPLICATION = 'HivePulse.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+encoded_cert = config("AIVEN_CA")
+if encoded_cert:
+    cert_path = os.path.join(
+        BASE_DIR,
+        'db_cert.pem'
+    )
+    with open(cert_path, 'wb') as file:
+        file.write(base64.b64decode(encoded_cert))
 
+else:
+    cert_path = None
 
 DATABASES = {
     'default': {
@@ -95,7 +105,8 @@ DATABASES = {
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
             'ssl': {
-                'ca': os.path.join(BASE_DIR, 'aiven-ca.pem'),
+                # 'ca': os.path.join(BASE_DIR, 'aiven-ca.pem'),
+                'ca': cert_path,
             }
         },
     }
@@ -188,5 +199,13 @@ EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
 
 DEFAULT_FROM_EMAIL = config("EMAIL_HOST_USER")
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
+
+
+imagekit = ImageKit(
+    private_key=config("IMAGEKIT_PRIV_KEY"),
+    public_key=config("IMAGEKIT_PUB_KEY"),
+    url_endpoint=config("IMAGEKIT_URL")
+)
 

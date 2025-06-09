@@ -16,7 +16,11 @@ class Category(models.Model):
 class BlogPost(models.Model):
     title = models.TextField()
     tagline = models.TextField()
-    thumbnail = models.ImageField(upload_to='images/blog-thumbnails', null = True, blank = True)
+    # thumbnail = models.ImageField(upload_to='images/blog-thumbnails', null = True, blank = True)
+    thumbnail = models.URLField(
+        null=True,
+        blank=True
+    )
     category = models.CharField(max_length=500)
     content = RichTextField()
     author = models.ForeignKey(User, on_delete = models.CASCADE)

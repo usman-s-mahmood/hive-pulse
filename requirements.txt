@@ -1,8 +1,15 @@
 asgiref==3.8.1
+certifi==2025.4.26
+charset-normalizer==3.4.2
 Django==5.2.2
 django-ckeditor==6.7.0
 django-js-asset==3.1.2
+idna==3.10
+imagekitio==4.1.0
 pillow==11.2.1
 PyMySQL==1.1.1
 python-decouple==3.8
+requests==2.32.3
+requests-toolbelt==0.10.1
 sqlparse==0.5.3
+urllib3==1.26.20

@@ -42,54 +42,56 @@ class AddCategoryForm(forms.ModelForm):
             )
         }
         
-class AddBlogPostForm(forms.ModelForm):
-    thumbnail = forms.ImageField(
-        required = False,
-        validators= [   
+class AddPostForm(forms.ModelForm):
+    title = forms.CharField(
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'Post Title'
+            }
+        ),
+        label='Enter the title for your post',
+        required=True
+    )
+    tagline = forms.CharField(
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'Post Tagline'
+            }
+        ),
+        label='Enter the tagline for your post',
+        required=True
+    )
+    thumbnail_url = forms.ImageField(
+        required=False,
+        validators=[
             FileExtensionValidator(
-                allowed_extensions= [
-                    'jpeg', 'jpg', 'png', 'webp', 'gif'
+                allowed_extensions=[
+                    'png', 'jpg', 'webp', 'jpeg', 'gif'
                 ]
             )
         ],
-        widget = forms.FileInput(
-            attrs = {
+        widget=forms.FileInput(
+            attrs={
                 'class': 'form-control'
             }
-        )
+        ),
+        label='Thumbnail for your post in jpg, jpeg, png, webp or gif (optional)'
     )
+    content = CKEditorWidget(config_name="full")
     class Meta:
-        model = models.BlogPost
+        model = models.BlogPosts
         fields = (
             'title',
             'tagline',
-            'category',
             'thumbnail',
             'content',
         )
-        widgets = {
-            'title': forms.TextInput(
-                attrs={
-                    'class': 'form-control'
-                }
-            ),
-            'tagline': forms.TextInput(
-                attrs = {
-                    'class': 'form-control'
-                }
-            ),
-            'category': forms.Select(
-                choices = choice_list,
-                attrs = {
-                    'class': 'form-control'
-                }
-            ),
-            'content': CKEditorWidget()
+        label = {
+            'content': 'Enter the content for your post'
         }
-        required = {
-            'thumbnail': False
-        }
-        
+      
 class ContactForm(forms.ModelForm):
     class Meta:
         model = models.Contact

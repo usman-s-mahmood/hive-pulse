@@ -8,6 +8,10 @@ from django.contrib.auth.models import User
 from BlogApp import models as BlogModels
 from django.core.paginator import Paginator
 from django.contrib.auth import views as authViews
+from imagekitio.models.UploadFileRequestOptions import UploadFileRequestOptions
+import os
+# from HivePulse import settings
+from HivePulse import settings
 
 # Create your views here.
 
@@ -230,38 +234,58 @@ def editPassword(request):
         
 @login_required(login_url='/auth/login')
 def createProfile(request):
-    form = forms.ProfileForm(request.POST, request.FILES)
-    profile_check = None
+    check = None
     try:
-        profile_check = request.user.profile
+        check = request.user.profile
     except Exception as error:
-        profile_check = None
-    if profile_check is not None:
+        check = None
+    if check is not None:
         messages.warning(
             request,
-            'Your profile already exists!',
-            extra_tags='error'
+            message=f'Your profile already exists!',
+            extra_tags='danger'
         )
-        return redirect('/')
-    else:
-        if request.method == 'POST':
-            if form.is_valid():
-                form.instance.user = request.user
-                form.save()
-                messages.success(
-                    request,
-                    'Your profile is created!',
-                    extra_tags='success'
+        return redirect('/auth/dashboard') 
+    form = forms.ProfileForm(request.POST, request.FILES)
+    if request.method == 'POST':
+        if form.is_valid():
+            form.instance.user = request.user
+            profile = form.save(commit=False)
+            if 'profile_pic_url' in request.FILES:
+                image = request.FILES['profile_pic_url']
+                # print(image)
+                temp_image_path = os.path.join(settings.MEDIA_ROOT, f'tempfiles/profile-pictures/{image.name}')
+                os.makedirs(os.path.dirname(temp_image_path), exist_ok=True)
+                with open(temp_image_path, 'wb+') as temp_file:
+                    for chunk in image.chunks():
+                        temp_file.write(chunk)
+                upload_response = settings.imagekit.upload_file(
+                    file=open(
+                        temp_image_path, 
+                        'rb'
+                    ),
+                    file_name=image.name,
+                    options=UploadFileRequestOptions(
+                        folder='/hivepulse/profile_pictures/'
+                    )
                 )
-                return redirect('/')
-            else:
-                messages.warning(
-                    request,
-                    f'Your form has errors!',
-                    extra_tags='error'
-                )
-                return redirect('/auth/create-profile')
+                profile.profile_pic = upload_response.url
+                # print('reached if block')
+                if os.path.exists(temp_image_path):
+                    os.remove(temp_image_path)
+            profile.save()
+            messages.success(
+                request,
+                message=f'Your Profile has been created successfully!',
+                extra_tags='success'
+            )
+            return redirect('/auth/dashboard') 
         else:
+            messages.warning(
+                request,
+                message=f'Your form has errors!\n{form.errors}',
+                extra_tags='danger'
+            )
             return render(
                 request,
                 'AuthApp/create-profile.html',
@@ -269,41 +293,74 @@ def createProfile(request):
                     'form': form
                 }
             )
-            
+    return render(
+        request,
+        'AuthApp/create-profile.html',
+        {
+            'form': form,
+            'create_profile': True
+        }
+    )
+ 
+         
 @login_required(login_url='/auth/login')
 def editProfile(request):
-    profile_check = None
+    check = None
     try:
-        profile_check = request.user.profile
+        check = request.user.profile
     except Exception as error:
-        profile_check = None
-    if profile_check is None:
+        check = None
+    if check is None:
         messages.warning(
             request,
-            'You donot have any profile yet! You can create on from here',
-            extra_tags='error'
+            message=f'You have to create a profile in order to edit it!',
+            extra_tags='danger'
         )
         return redirect('/auth/create-profile')
-    else:
-        form = forms.ProfileForm(request.POST, request.FILES, instance = request.user.profile)
-        if request.method == "POST":
-            if form.is_valid():
-                form.save()
-                messages.success(
-                    request,
-                    'Your profile has been edited!',
-                    extra_tags='success'
+    form = forms.ProfileForm(
+        request.POST,
+        request.FILES,
+        instance=request.user.profile
+    )
+    print(form.fields)
+    if request.method == 'POST':
+        if form.is_valid():
+            profile = form.save(commit=False)
+            if 'profile_pic_url' in request.FILES:
+                image = request.FILES['profile_pic_url']
+                # print(image)
+                temp_image_path = os.path.join(settings.MEDIA_ROOT, f'tempfiles/profile-pictures/{image.name}')
+                os.makedirs(os.path.dirname(temp_image_path), exist_ok=True)
+                with open(temp_image_path, 'wb+') as temp_file:
+                    for chunk in image.chunks():
+                        temp_file.write(chunk)
+                upload_response = settings.imagekit.upload_file(
+                    file=open(
+                        temp_image_path, 
+                        'rb'
+                    ),
+                    file_name=image.name,
+                    options=UploadFileRequestOptions(
+                        folder='/hivepulse/profile_pictures/'
+                    )
                 )
-                return redirect('/')
-            else:
-                messages.warning(
-                    request,
-                    f'Your form has errors!\n{form.errors}',
-                    extra_tags='error'
-                )
-                return redirect('/auth/edit-profile')
+                profile.profile_pic = upload_response.url
+                # print('reached if block')
+                if os.path.exists(temp_image_path):
+                    os.remove(temp_image_path)
+            profile.save()
+            messages.success(
+                request,
+                message=f'Your Profile has been updated!',
+                extra_tags='success'
+            )
+            return redirect('/auth/dashboard') 
         else:
-            form = forms.ProfileForm(instance = request.user.profile)
+            messages.warning(
+                request,
+                message=f'Your form has errors!\n{form.errors}',
+                extra_tags='danger'
+            )
             return render(
                 request,
                 'AuthApp/edit-profile.html',
@@ -311,7 +368,19 @@ def editProfile(request):
                     'form': form
                 }
             )
-
+    else:
+        form = forms.ProfileForm(
+            instance=request.user.profile
+        )
+        return render(
+            request,
+            'AuthApp/edit-profile.html',
+            {
+                'form': form,
+                'edit_profile': True
+            }
+        )
+ 
 @login_required(login_url='/auth/login')
 def dashboard(request):
     post_query = BlogModels.BlogPost.objects.filter(author = request.user).all().order_by('-pk')

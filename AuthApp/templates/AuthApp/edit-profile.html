@@ -15,12 +15,12 @@
 </div>
 <!-- Header End -->
     <div class="container">
-        <form action="" class="form-control" method=POST enctype="multipart/form-data">
+        <form action="" class="form-control" method="post" enctype="multipart/form-data">
             {% csrf_token %}
             {{form.about_user.label}}
             {{form.about_user}}
-            {{form.profile_pic.label}}
-            {{form.profile_pic}}
+            {{form.profile_pic_url.label}}
+            {{form.profile_pic_url}}
             {{form.social_link.label}}
             {{form.social_link}}
             <br>

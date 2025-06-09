@@ -6,4 +6,5 @@ misc/
 secrets.json
 .env
 aiven-ca.pem
+db_cert.pem
 __pycache__/

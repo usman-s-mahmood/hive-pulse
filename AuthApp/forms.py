@@ -92,45 +92,50 @@ class UserPasswordChangeForm(PasswordChangeForm):
         self.fields['new_password2'].widget.attrs['class'] = 'form-control'
         
 class ProfileForm(forms.ModelForm):
-    profile_pic = forms.ImageField(
-        required = False,
-        validators = [
-          FileExtensionValidator(
-              allowed_extensions=[
-                  'jpg', 'jpeg', 'png', 'gif', 'webp'
-              ]
-          )  
+    profile_pic_url = forms.ImageField(
+        label='Your Profile Picture in jpg, jpeg, png, gif or webp (optional)',
+        required=False,
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=[
+                    'jpg', 'jpeg', 'png',
+                    'gif', 'webp'
+                ]
+            )        
         ],
-        widget = forms.FileInput(
+        widget=forms.FileInput(
             attrs = {
                 'class': 'form-control'
             }
         )
     )
+    about_user = forms.CharField(
+        widget=forms.Textarea(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'About yourself in 1000 characters'
+            }
+        ),
+        label='Write about yourself (required)',
+        required=True
+    )
+    social_link = forms.URLField(
+        widget=forms.URLInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'Your social media handle (optional)'
+            }
+        ),
+        label='Your social media handle (optional)',
+        required=False
+    )
     class Meta:
         model = models.Profile
         fields = (
             'about_user',
-            'profile_pic',
+            'profile_pic_url',
             'social_link',
-        )
-        widgets = {
-            'about_user': forms.TextInput(
-                attrs = {
-                    'class': 'form-control'
-                }
-            ),
-            'social_link': forms.TextInput(
-                attrs = {
-                    'class': 'form-control'
-                }
-            )
-        }
-        required = {
-            'profile_pic': False,
-            'social_link': False
-        }
-        
+        )       
 class CustomPasswordResetForm(PasswordResetForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

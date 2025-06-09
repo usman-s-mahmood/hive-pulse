@@ -6,7 +6,8 @@ from . import models
 from django.core.mail import send_mail
 from datetime import datetime, date
 from django.core.paginator import Paginator
-
+from imagekitio.models.UploadFileRequestOptions import UploadFileRequestOptions
+from HivePulse.settings import imagekit
 # Create your views here.
 
 def index(request):
