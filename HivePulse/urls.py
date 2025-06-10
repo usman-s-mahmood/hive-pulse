@@ -26,7 +26,8 @@ urlpatterns = [
     path('', include('BlogApp.urls'), name='blog-urls'),
     path('auth/', include('AuthApp.urls'), name='auth-urls'),
     path('comment/', include('comment.urls')),
-]
+] 
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
