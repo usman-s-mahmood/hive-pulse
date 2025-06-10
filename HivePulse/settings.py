@@ -30,8 +30,10 @@ SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG')
+print(f'Value of Debug is: {DEBUG}')
 
 ALLOWED_HOSTS = config("HOSTS", default="").split(",")
+CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS").split(",")
 
 
 # Application definition
