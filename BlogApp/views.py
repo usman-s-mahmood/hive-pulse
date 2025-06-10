@@ -13,6 +13,7 @@ from imagekitio.models.UploadFileRequestOptions import UploadFileRequestOptions
 import os
 from HivePulse.settings import imagekit
 from HivePulse import settings
+from django.core.mail import send_mail
 
 # Create your views here.
 
@@ -457,45 +458,72 @@ def about_view(request):
     )
     
 def contact_view(request):
-    form = forms.ContactForm(request.POST)
+    form = forms.ContactForm(request.POST or None)
     if request.method == 'POST':
         if form.is_valid():
-            name = request.POST.get('name')
-            email = request.POST.get('email')
-            subject = request.POST.get('subject')
-            message = request.POST.get('message')
-            form.instance.name = name
-            form.instance.email = email
-            form.instance.subject = subject
-            form.instance.message = message
+            name = form.cleaned_data['name']
+            email = form.cleaned_data['email']
+            subject = form.cleaned_data['subject']
+            message = form.cleaned_data['message']
+
+            # Save to DB
             form.save()
-            messages.success(
-                request,
-                message=f'Your contact query is submitted!',
-                extra_tags='success'
-            )
+
+            # Compose full message
+            full_message = f"New contact form submission:\n\n" \
+                           f"Name: {name}\n" \
+                           f"Email: {email}\n\n" \
+                           f"Message:\n{message}"
+
+            # Send email
+            try:
+                send_mail(
+                    subject=f"Contact Form submission at Hive Pulse {subject}",
+                    message=full_message,
+                    from_email=settings.EMAIL_HOST_USER,  # or use email
+                    recipient_list=[settings.EMAIL_HOST_USER],  # set in settings or use your email directly
+                    fail_silently=False,
+                )
+                messages.success(
+                    request,
+                    message='Your contact query is submitted and emailed!',
+                    extra_tags='success'
+                )
+                # full_message = f"Dear {name}," \
+                #            f"We have recevied your query about [{subject}], that was submitted to hive pulse and our representative will contact you soon in this regard\n" \
+                #            f"Best Regards,\n\n" \
+                #            f"IT Team, Hive Pulse"
+                # send_mail(
+                #     subject=f'Contact Form Query Received by Hive Pulse',
+                #     message=full_message,
+                #     from_email=settings.DEFAULT_FROM_EMAIL,
+                #     recipient_list=[email],
+                #     fail_silently=False
+                # )
+            except Exception as e:
+                messages.warning(
+                    request,
+                    message=f'Form submitted but email failed to send: {str(e)}',
+                    extra_tags='error'
+                )
+
             return redirect('/contact')
         else:
             messages.warning(
                 request,
                 message=f'Your form has errors!\n{form.errors}',
-                extra_tags='danger'
+                extra_tags='error'
             )
-            return render(
-                request,
-                'BlogApp/contact.html',
-                {
-                    
-                }
-            )
+
     return render(
         request,
         'BlogApp/contact.html',
         {
+            'form': form,
             'contact': True
         }
     )
-    
+   
 def not_found(request, exception):
     return render(
         request,
