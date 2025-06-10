@@ -34,10 +34,7 @@ print(f'Value of Debug is: {DEBUG}')
 
 ALLOWED_HOSTS = config("HOSTS", default="").split(",")
 
-if DEBUG:
-    CSRF_TRUSTED_ORIGINS = ["http://localhost", "http://127.0.0.1"]
-else:
-    CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", default="").split(",")
+CSRF_TRUSTED_ORIGINS = ["https://hive-pulse-engzc8begwbscgc5.westindia-01.azurewebsites.net"]
 
 
 # Application definition
