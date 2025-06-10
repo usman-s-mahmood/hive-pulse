@@ -11,10 +11,7 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 from dj_static import Cling
-from HivePulse.settings import DEBUG
+from decouple import config
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'HivePulse.settings')
 
-if not DEBUG:
-    application = Cling(get_wsgi_application())
-else:
-    application = get_wsgi_application()
+application = Cling(get_wsgi_application())
