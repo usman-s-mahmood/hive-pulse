@@ -25,6 +25,7 @@ urlpatterns = [
     path('hive-pulse-admin-panel/', admin.site.urls),
     path('', include('BlogApp.urls'), name='blog-urls'),
     path('auth/', include('AuthApp.urls'), name='auth-urls'),
+    path('comment/', include('comment.urls')),
 ]
 
 if settings.DEBUG:
