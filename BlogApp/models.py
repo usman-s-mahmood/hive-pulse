@@ -1,74 +1,165 @@
 from django.db import models
 from django.contrib.auth.models import User
-# from phonenumber_field.modelfields import PhoneNumberField
 from ckeditor.fields import RichTextField
+from comment.models import Comment
+from django.contrib.contenttypes.fields import GenericRelation
+from django.utils.text import slugify
 
 # Create your models here.
 
 class Category(models.Model):
-    name = models.CharField(max_length=500, unique=True, null=False, blank=False)
-    added_by = models.CharField(max_length=500)
-    date_added = models.DateTimeField(auto_now_add = True)
-
+    name = models.CharField(
+        max_length=255,
+        null=False,
+        blank=False,
+        unique=True
+    )
+    slug = models.SlugField(default=slugify(name))
+    added_by = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE
+    )
+    added_at = models.DateTimeField(
+        auto_now_add=True
+    )
+    def make_slug(self):
+        self.slug = slugify(self.name)
+    def save(self, *args, **kwargs):
+        if not self.slug or self.slug != slugify(self.name):
+            self.make_slug()
+        super().save(*args, **kwargs)
     def __str__(self):
-        return f'{self.name} | added by: {self.added_by}'
-    
-class BlogPost(models.Model):
-    title = models.TextField()
-    tagline = models.TextField()
-    # thumbnail = models.ImageField(upload_to='images/blog-thumbnails', null = True, blank = True)
+        return f'{self.slug} - {self.added_by.username}'
+
+class BlogPosts(models.Model):
+    title = models.CharField(
+        max_length=255,
+        blank=False,
+        null=False,
+        unique=True
+    )
+    tagline = models.CharField(
+        max_length=255,
+        blank=False,
+        null=False
+    )
+    content = RichTextField()
+    # thumbnail = models.ImageField(
+    #     null=True,
+    #     blank=True,
+    #     upload_to='images/BlogThumnails'
+    # )
     thumbnail = models.URLField(
         null=True,
         blank=True
     )
-    category = models.CharField(max_length=500)
-    content = RichTextField()
-    author = models.ForeignKey(User, on_delete = models.CASCADE)
-    date_posted = models.DateField(auto_now_add = True)
-    likes = models.ManyToManyField(User, blank = True, related_name="post_likes")
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE
+    )
+    post_date = models.DateField(
+        auto_now_add=True
+    )
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.CASCADE,
+        null=False,
+        unique=False
+    )
+    likes = models.ManyToManyField(
+        User,
+        blank=True,
+        related_name='post_likes'
+    )
+    comments = GenericRelation(Comment)
+    slug = models.SlugField()
+    hide_post = models.BooleanField(default=False)
     
     def __str__(self):
-        return f'{self.title} | posted by: {self.author.username}'
+        return f'{self.title} - {self.slug} - {self.author.username}'
     
     def total_likes(self):
         return self.likes.count()
     
+    def make_slug(self):
+        self.slug = slugify(self.title)
+
+    def save(self, *args, **kwargs):
+        if not self.slug or self.title != self.__class__.objects.get(pk=self.pk).title:
+            self.make_slug()
+        super().save(*args, **kwargs)
+    
+class Service(models.Model):
+    name = models.CharField(
+        max_length=255,
+        null=False,
+        blank=False,
+        unique=True
+    )
+    added_at = models.DateTimeField(auto_now_add=True)
+    added_by = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE
+    )
+    def __str__(self):
+        return f'{self.name} | {self.added_by} | {self.added_at}'
+    
+    
 class Contact(models.Model):
-    name = models.CharField(max_length=500)
-    email = models.EmailField()
-    subject = models.CharField(max_length = 250, default = None)
-    message = models.TextField()
-    date_contacted = models.DateTimeField(auto_now_add = True)
+    name = models.CharField(
+        max_length = 255,
+        null=False,
+        blank=False
+    )
+    subject = models.CharField(
+        max_length=255,
+        null=False,
+        blank=False
+    )
+    email = models.EmailField(
+        blank=False,
+        null=False
+    )
+    message = models.TextField(
+        null=False,
+        blank=False
+    )
+    submitted_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f'{self.name} | {self.date_contacted}'
-    
+        return f'{self.name} | {self.subject} | {self.submitted_at}'
+
 class Newsletter(models.Model):
-    email = models.EmailField()
-    date_subscribed = models.DateTimeField(auto_now_add = True)
+    email = models.EmailField(
+        null=False,
+        blank=False,
+        unique=True
+    )
+    submitted_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f'{self.email}'
     
-    
-# class Appointments(models.Model):
-#     name = models.CharField(max_length = 500)
-#     email = models.EmailField()
-#     phone_number = PhoneNumberField()
-#     service = models.CharField(max_length = 100)
-#     appointment_date = models.DateField()
-#     appointment_time = models.CharField(max_length=50)
-#     message = models.TextField()
-#     submission_date = models.DateTimeField(auto_now_add = True)
-
-#     def __str__(self):
-#         return f'{self.name} | {self.appointment_date} | {self.service}'
-    
-# class Services(models.Model):
-    name = models.CharField(max_length = 200, unique = True)
-    description = models.TextField()
-    date_added = models.DateTimeField(auto_now_add = True)
-    added_by = models.CharField(max_length = 500)
+class Quotation(models.Model):
+    name = models.CharField(
+        max_length=255,
+        null=False,
+        blank=False
+    )
+    email = models.EmailField(
+        null=False,
+        blank=False
+    )
+    service = models.CharField(
+        max_length=255,
+        null=False,
+        blank=False
+    )
+    message = models.TextField(
+        null=False,
+        blank=False
+    )
+    submitted_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f'{self.name}'
+        return f'{self.name} | {self.service} | {self.submitted_at}'

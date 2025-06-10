@@ -1,119 +1,225 @@
 {% extends "BlogApp/base.html" %}
 
 {% block body %}
-<!-- Header Start -->
-<div class="container-fluid bg-breadcrumb">
-    <div class="container text-center py-5" style="max-width: 900px;">
-        <h4 class="text-white display-4 mb-4 wow fadeInDown" data-wow-delay="0.1s">Dashboard</h4>
-        <ol class="breadcrumb d-flex justify-content-center mb-0 wow fadeInDown" data-wow-delay="0.3s">
-            <li class="breadcrumb-item"><a href="index.html">Home</a></li>
-            <li class="breadcrumb-item text-primary">Auth</li>
-            <li class="breadcrumb-item active text-primary">Dashboard</li>
-        </ol>    
-    </div>
-</div>
-<!-- Header End -->
-    <div class="container">
-        <hr>
-            <p class="fs-1 text-center"><strong class="text-secondary">Welcome To User Dashboard: {{user.username}}</strong></p>
-        <hr>
-        <div class="row">
-            <div class="col-md-2 card p-1">
-                <div class="container text-center">
-                    {% if user.profile %}
-                        {% if user.profile.profile_pic %}
-                            <img src="{{user.profile.profile_pic.url}}" alt="{{user.username}}" class="img-fluid" width="720px">
-                        {% else %}
-                            <img src="/media/default-img/default-user.jpg" alt="{{user.username}}" class="img-fluid" width="720px">
-                        {% endif %}
-                    {% else %}
-                        <img src="/media/default-img/default-user.jpg" alt="{{user.username}}" class="img-fluid" width="720px">
-                    {% endif %}
-                    {% comment %} <div class="d-flex"> {% endcomment %}
-                        <a href="/add-post" class="btn btn-primary mt-2">Add Post</a>
-                        <a href="/auth/edit-user" class="btn btn-primary mt-2">Edit Account</a>
-                        {% if user.profile %}
-                            <a href="/auth/edit-profile" class="btn btn-primary mt-2">Edit Profile</a>
-                        {% endif %}
-                        <a href="/auth/delete-user" class="btn btn-primary mt-2">Delete Account</a>
-                    {% comment %} </div> {% endcomment %}
-                </div>
-            </div>
-            <div class="col-md-10">
-                <div class="container">
-                    <div class="form-control">
-                        <p class="fs-5 text-center"><strong>User Account Details</strong></p>
-                        <p class="fs-6 text-center">Name: <strong>{{user.first_name}} {{user.last_name}}</strong></p>
-                        <p class="fs-6 text-center">Email: <strong>{{user.email}}</strong></p>
-                        <p class="fs-6 text-center">Date Joined: <strong>{{user.date_joined}}</strong></p>
-                        <p class="fs-6 text-center">Last Login: <strong>{{user.last_login}}</strong></p>
-                        <hr>
-                        <p class="fs-5 text-center"><strong>User Profile Details</strong></p>
-                        {% if user.profile %}
-                            <p class="fs-6 text-center">About User: <strong class="text-secondary">{{user.profile.about_user}}</strong></p>
-                            {% if user.profile.social_link %}
-                                <p class="fs-6 text-center">Social Link: <strong class="text-secondary">{{user.profile.social_link}}</strong></p>
-                            {% endif %}
-                        {% else %}
-                            <p class="fs-6 text-center"><strong class="text-secondary">No profile created yet! Create Now</strong></p>
-                            <div class="text-center">
-                                <a href="/auth/create-profile" class="btn btn-primary">Create Profile</a>                        
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
+
+    <!-- Page Header Start -->
+    <div class="container-fluid page-header py-5 mb-5 wow fadeIn" data-wow-delay="0.1s">
+        <div class="container text-center py-5">
+            <h1 class="display-2 text-white mb-4 animated slideInDown">User Dashboard</h1>
+            <nav aria-label="breadcrumb animated slideInDown">
+                <ol class="breadcrumb justify-content-center mb-0">
+                    <li class="breadcrumb-item"><a href="/">Home</a></li>
+                    <li class="breadcrumb-item"><a href="">Auth</a></li>
+                    <li class="breadcrumb-item text-primary" aria-current="page">Dashboard</li>
+                </ol>
+            </nav>
         </div>
     </div>
-    <br>
+    <!-- Page Header End -->
     <div class="container">
         <hr>
-            <p class="fs-1 text-center"><strong class="text-secondary">Posts by: {{user.username}}</strong></p>
+            <p class="fs-1 text-center"><strong class="text-secondary">Welcome to User Dashboard: {{user.username}}</strong></p>
         <hr>
-        {% if not posts %}
-            <div class="text-center">
-                <p class="fs-3 text-center"><strong class="text-secondary">No posts by: {{user.username}}, add your first post now!</strong></p>        
-                <a href="/add-post" class="btn btn-primary">Add Post</a>
-            </div>
-        {% endif %}
         <div class="row">
-        {% for post in posts %}
-            <div class="col-md-6">
-                <a href="/post-view/{{post.title|slugify}}/{{post.id}}">
-                    <div class="form-control">
-                        <div class="row">
-                            <div class="container">
-                                {% if post.thumbnail == '' %}
-                                    <img src="/media/default-img/default-post.png" alt="{{post.title}}" class = "img-fluid" width = "720px">
-                                {% else %}
-                                    <img src="/media/{{post.thumbnail}}" alt="{{post.title}}" class = "img-fluid" width = "1280px">
+            <div class="col-md-4 p-3" style="background: silver;">
+                <div class="card-img text-center">
+                    {% if user.profile %}
+                        {% if user.profile.profile_pic %}
+                            <img src="{{user.profile.profile_pic}}" alt="{{user.username}}" class="img-fluid" width="120px">
+                        {% else %}
+                            <img src="/media/default/default-user.jpg" alt="{{user.username}}" class="img-fluid" width="120px">                    
+                        {% endif %}
+                    {% else %}
+                        <img src="/media/default/default-user.jpg" alt="{{user.username}}" class="img-fluid" width="120px">                    
+                    {% endif %}
+                </div>
+                <div class="d-flex flex-column mt-3">
+                    <a href="/auth/logout" class="btn btn-success mb-2">Logout</a>
+                    {% if user.profile %}
+                        <a href="/auth/edit-profile" class="btn btn-success mb-2">Edit Profile</a>
+                    {% else %}
+                        <a href="/auth/create-profile" class="btn btn-success mb-2">Create Profile</a>
+                    {% endif %}
+                    <a href="/auth/edit-user" class="btn btn-success mb-2">Edit Account</a>
+                    <a href="/auth/edit-password" class="btn btn-success mb-2">Edit Password</a>
+                    <a href="/auth/delete-user" class="btn btn-danger mb-2">Delete Account</a>
+                </div>
+            </div>
+            <div class="col-md-8 text-center">
+                <hr>
+                    <p class="fs-1 text-center"><strong class="text-secondary">User Details</strong></p>
+                <hr>
+                <p class="fs-4 text-center"><strong class="text-secondary">{{user.first_name}} {{user.last_name}}</strong></p>
+                <p class="fs-4 text-center"><strong class="text-secondary">Username: {{user.username}}</strong></p>
+                <p class="fs-4 text-center"><strong class="text-secondary">Last Login: {{user.last_login}}</strong></p>
+                <p class="fs-4 text-center"><strong class="text-secondary">Email: {{user.email}}</strong></p>
+                <p class="fs-4 text-center"><strong class="text-secondary">Date Joined: {{user.date_joined}}</strong></p>
+            </div>
+        </div>
+        <br>
+        <div class="row ">
+            <hr>
+                <p class="fs-1 text-center"><strong class="text-secondary">Profile Details</strong></p>
+            <hr>
+            {% if user.profile %}
+                {% if user.profile.about_user %}
+                <p class="fs-4 text-center"><strong class="text-secondary">About User: {{user.profile.about_user}}</strong></p>
+                {% endif %}
+                {% if user.profile.social_link %}
+                    <p class="fs-4 text-center"><strong class="text-secondary">Social Link: <a href="{{user.profile.social_link}}">{{user.profile.social_link}}</a></strong></p>
+                {% endif %}
+                {% if not user.profile.about_user and not user.profile.social_link %}
+                    <p class="fs-4 text-center"><strong class="text-secondary">No details added to profile! Add details now</strong></p>
+                    <div class="text-center mb-3">
+                        <a href="/auth/edit-profile" class="btn btn-success">Edit Profile</a>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="text-center">
+                    <p class="fs-4 text-center"><strong class="text-secondary">No profile created yet! Create your profile Now</strong></p>
+                    <a href="/auth/create-profile" class="btn btn-success">Create Profile</a>
+                </div>
+            {% endif %}
+            {% if user.is_superuser or user.is_staff %}
+                <div class="row">
+                    <hr>
+                        <p class="fs-1 text-center"><strong class="text-dark">Posts by: {{user.username}}</strong></p>
+                    <hr>
+                        {% if post_none %}
+                            <p class="fs-3 text-center"><strong class="text-secondary">No posts by {{user.username}}! Create your first post</strong></p>
+                            <a href="/add-post" class="btn btn-success">Add Post</a>
+                        {% else %}
+                        <div class="row text-center" data-wow-delay="0.1s">
+                            {% for post in posts %}
+                            <div class="project-item mb-5 col-md-4 text-center">
+                                <div class="position-relative text-center">
+                                    {% comment %} <a href="/posts/{{post.title|slugify}}"> {% endcomment %}
+                                    {% comment %} <form action="/posts/{{post.title|slugify}}" id="imageMainPost{{post.id}}" method=POST>
+                                        <input type="hidden" name="post_id" value={{post.id}}>
+                                    </form>
+                                    <a 
+                                        href="javscript:void(0);"
+                                        onclick="document.getElementById('imageMainPost{{post.id}}').submit();"
+                                    > {% endcomment %}
+                                    <a href="/posts/{{post.slug}}">
+                                        {% if post.thumbnail %}
+                                            <img src="{{post.thumbnail}}" alt="{{post.title}}" class="img-fluid" width="720px">
+                                        {% else %}
+                                            <img src="/media/default/default-post.png" alt="{{post.title}}" class="img-fluid" width="720px">
+                                        {% endif %}
+                                    </a>
+                                </div>
+                                <div class="p-4 text-center">
+                                    <p>
+                                        {% comment %} <a 
+                                        href="javscript:void(0);"
+                                        onclick="document.getElementById('imageMainPost{{post.id}}').submit();"
+                                    > {% endcomment %}
+                                    <a href="/posts/{{post.slug}}">
+                                    {{post.title|slice:":20"}} ...</a></p>
+                                    <p class="text-secondary">{{post.tagline|slice:":30"}} ...</p>
+                                </div>
+                                {% if user.is_staff or user.is_superuser %}
+                                <div class="btn-group mb-5 text-center">
+                                    {% if user.id == post.author.id %}
+                                        <a href="/posts/{{post.slug}}"
+                                        class="btn btn-success me-2">Read Post</a>
+                                        {% if post.hide_post == True %}
+                                        <a href="/unhide-post/{{post.id}}" class="btn btn-success me-2 ">Unhide Post</a>
+                                        {% else %}
+                                        <a href="/hide-post/{{post.id}}" class="btn btn-danger me-2">Hide Post</a>
+                                        {% endif %}
+                                        <a href="/edit-post/{{post.id}}" class="btn btn-success me-2">Edit Post</a>
+                                        <a href="/delete-post/{{post.id}}" class="btn btn-danger">Delete Post</a>
+                                        <br>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="row text-center">
+                            <div>
+                                {% if posts.has_previous %}
+                                    <a href="?page={{posts.previous_page_number}}" class="btn btn-primary me-1">Previous</a>
+                                {% endif %}
+                                {% comment %} {{posts.number}}
+                                {{posts.paginator.num_pages}} {% endcomment %}
+                                {% if posts.has_next %}
+                                    <a href="?page={{posts.next_page_number}}" class="btn btn-primary">Next</a>
                                 {% endif %}
                             </div>
                         </div>
-                        <div class="row">
-                            <p class="fs-3"><strong class="text-center"><span class="text-secondary">{{post.title}}</span></strong></p>
-                            <p class="fs-5"><strong class="text-center"><span class="text-secondary">{{post.tagline|slice:":20"}}...</span></strong></p>
+                    {% endif %}
+                </div>
+            {% endif %}
+            <br>
+            <div class="row mt-3 text-center">
+                <hr>
+                    <p class="fs-1 text-center"><strong class="text-dark">Posts Liked by: {{user.username}}</strong></p>
+                <hr>
+                    {% if user_post_none %}
+                        <p class="fs-3 text-center"><strong class="text-secondary">No posts are like by {{user.username}}! Like your first post</strong></p>
+                        <a href="/posts" class="btn btn-success">Blog Post</a>
+                    {% else %}
+                    <div class="row text-center">
+                        {% for user_post in user_posts %}
+                        <div class="project-item mb-5 col-md-4 text-center">
+                            <div class="position-relative">
+                                {% comment %} <a href="/posts/{{user_post.title|slugify}}"> {% endcomment %}
+                                {% comment %} <form action="/posts/{{user_post.id}}" id="likedPost{{user_post.id}}" method=POST>
+                                    {% csrf_token %}
+                                    <input type="hidden" name="post_id" value={{user_post.id}}>
+                                </form>
+                                <a 
+                                    href="javascript:void(0);"
+                                    onclick="document.getElementById('likedPost{{user_post.id}}').submit();"
+                                > {% endcomment %}
+                                <a href="/posts/{{user_post.slug}}">
+                                    {% if user_post.thumbnail %}
+                                        <img src="{{user_post.thumbnail.url}}" alt="{{user_post.title}}" class="img-fluid" width="720px">
+                                    {% else %}
+                                        <img src="/media/default/default-post.png" alt="{{user_post.title}}" class="img-fluid" width="720px">
+                                    {% endif %}
+                                </a>
+                            </div>
+                            <div class="p-4 text-center">
+                                <p><a 
+                                    class="text-dark"
+                                    href="/posts/{{user_post.slug}}"
+                                >
+                                {{user_post.title|slice:":20"}} ...</a></p>
+                                <p class="text-secondary">{{user_post.tagline|slice:":30"}} ...</p>
+                            </div>
+                            <div class="btn-group mb-5 text-center">
+                                <a href="javascript:void(0);"
+                                onclick="document.getElementById('likedPost{{user_post.id}}').submit();" class="btn btn-success me-2">Read Post</a>
+                                {% if user.is_staff or user.is_superuser %}
+                                {% if user.id == user_post.author.id %}
+                                    <a href="/edit-post/{{user_post.id}}" class="btn btn-success me-2">Edit Post</a>
+                                    <a href="/delete-post/{{user_post.id}}" class="btn btn-danger">Delete Post</a>
+                                    <br>
+                                {% endif %}
+                                {% endif %}
+                            </div>
                         </div>
-                        <div class="text-center mt-1">
-                            <a href="/post-view/{{post.title|slugify}}/{{post.id}}" class="btn btn-primary">Read More</a>
-                            {% if post.author == user or user.is_superuser %}
-                                <a href="/edit-post/{{post.title|slugify}}/{{post.id}}" class="btn btn-primary">Edit Post</a>
-                                <a href="/delete-post/{{post.id}}" class="btn btn-primary">Delete Post</a>
+                        {% endfor %}
+                    </div>
+                    <div class="row text-center">
+                        <div>
+                            {% if user_posts.has_previous %}
+                                <a href="?page={{user_posts.previous_page_number}}" class="btn btn-primary me-1">Previous</a>
+                            {% endif %}
+                            {% comment %} {{posts.number}}
+                            {{posts.paginator.num_pages}} {% endcomment %}
+                            {% if user_posts.has_next %}
+                                <a href="?page={{user_posts.next_page_number}}" class="btn btn-primary">Next</a>
                             {% endif %}
                         </div>
                     </div>
-                </a>
             </div>
-        {% endfor %}
+            {% endif %}
         </div>
-    </div>
-    <div class="container text-center mt-3">
-        {% if posts.has_previous %}
-            <a href="?page={{posts.previous_page_number}}" class="btn btn-primary me-2">Previous</a>
-        {% endif %}
-        {% if posts.has_next %}
-            <a href="?page={{posts.next_page_number}}" class="btn btn-primary me-2">Next</a>
-        {% endif %}
     </div>
 
 {% endblock body %}

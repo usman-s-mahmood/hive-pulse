@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'BlogApp',
     'MoviesApp',
     'ckeditor',
+    'comment'
 ]
 
 MIDDLEWARE = [
@@ -88,6 +89,11 @@ if encoded_cert:
         BASE_DIR,
         'db_cert.pem'
     )
+    # decoded_bytes = base64.b64decode(encoded_cert)
+    # print(decoded_bytes.decode(
+    #     'utf-8',
+    #     errors='ignore'
+    # ))
     with open(cert_path, 'wb') as file:
         file.write(base64.b64decode(encoded_cert))
 
@@ -105,7 +111,7 @@ DATABASES = {
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
             'ssl': {
-                # 'ca': os.path.join(BASE_DIR, 'aiven-ca.pem'),
+                # 'ca': os.path.join(BASE_DIR, 'db_cert.pem'),
                 'ca': cert_path,
             }
         },
@@ -202,10 +208,15 @@ DEFAULT_FROM_EMAIL = config("EMAIL_HOST_USER")
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 
-
+# imagekit.io object initialization
 imagekit = ImageKit(
     private_key=config("IMAGEKIT_PRIV_KEY"),
     public_key=config("IMAGEKIT_PUB_KEY"),
     url_endpoint=config("IMAGEKIT_URL")
 )
 
+# django comments dab setup
+PROFILE_APP_NAME = 'AuthApp'
+PROFILE_MODEL_NAME = 'Profile'
+MAX_THREAD_LEVEL = 5
+COMMENTS_DAB_MAX_THREAD_LEVEL = 3

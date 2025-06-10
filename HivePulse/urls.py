@@ -18,6 +18,8 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+import django.conf.urls as conf_urls
+import BlogApp.views as blog_views
 
 urlpatterns = [
     path('hive-pulse-admin-panel/', admin.site.urls),
@@ -31,3 +33,6 @@ if settings.DEBUG:
 admin.site.site_header = 'Hive Pulse'
 admin.site.index_title = 'Hive Pulse Admin Panel'
 admin.site.site_title = 'CMS Admin Panel'
+
+conf_urls.handler404 = blog_views.not_found
+conf_urls.handler500 = blog_views.server_error

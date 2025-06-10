@@ -1,47 +1,24 @@
 # created manually!
 from django import forms
 from . import models
-from django.core.validators import FileExtensionValidator
-# from phonenumber_field.formfields import PhoneNumberField
 from ckeditor.widgets import CKEditorWidget
-
-choice_list = []
-categories = models.Category.objects.all()
-for category in categories:
-    choice_list.append((f'{category.name}', f'{category.name}'))
-
-# services_list = []
-# services = models.Services.objects.all()
-# for service in services:
-#     services_list.append((f'{service.name}', f'{service.name}'))
-    
-# time_slots = [
-#     ('9:00 AM - 10:00 AM', '9:00 AM - 10:00 AM'),
-#     ('10:00 AM - 11:00 AM', '10:00 AM - 11:00 AM'),
-#     ('11:00 AM - 12:00 PM', '11:00 AM - 12:00 PM'),
-#     ('12:00 PM - 01:00 PM', '12:00 PM - 01:00 PM'),
-#     ('1:00 PM - 2:00 PM', '1:00 PM - 2:00 PM'),
-#     ('2:00 PM - 3:00 PM', '2:00 PM - 3:00 PM'),
-#     ('3:00 PM - 4:00 PM', '3:00 PM - 4:00 PM'),
-#     ('4:00 PM - 5:00 PM', '4:00 PM - 5:00 PM')
-# ]
-
-# print(services_list)
-
-# print(choice_list)
+from django.core.validators import FileExtensionValidator
 
 class AddCategoryForm(forms.ModelForm):
+    name = forms.CharField(
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'Category Name'
+            }
+        ),
+        label='Enter the name of category',
+        required=True
+    )
     class Meta:
         model = models.Category
         fields = ('name',)
-        widgets = {
-            'name': forms.TextInput(
-                attrs = {
-                    'class': 'form-control'
-                }
-            )
-        }
-        
+
 class AddPostForm(forms.ModelForm):
     title = forms.CharField(
         widget=forms.TextInput(
@@ -79,7 +56,7 @@ class AddPostForm(forms.ModelForm):
         ),
         label='Thumbnail for your post in jpg, jpeg, png, webp or gif (optional)'
     )
-    content = CKEditorWidget(config_name="full")
+    content = CKEditorWidget()
     class Meta:
         model = models.BlogPosts
         fields = (
@@ -91,8 +68,63 @@ class AddPostForm(forms.ModelForm):
         label = {
             'content': 'Enter the content for your post'
         }
-      
+        
+class AddServiceForm(forms.ModelForm):
+    name = forms.CharField(
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'Service Name'
+            }
+        ),
+        label='Enter the name of service',
+        required=True
+    )
+    class Meta:
+        model = models.Service
+        fields = ('name',)
+        
 class ContactForm(forms.ModelForm):
+    name = forms.CharField(
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'Your name'
+            }
+        ),
+        label='Enter your name',
+        required=True
+    )
+    email = forms.EmailField(
+        widget=forms.EmailInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'Your email'
+            }
+        ),
+        label='Enter your email',
+        required=True
+    )
+    subject = forms.CharField(
+        widget=forms.TextInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'Subject'
+            }
+        ),
+        label='Enter a subject',
+        required=True
+    )
+    message = forms.CharField(
+        widget=forms.Textarea(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'Your message'
+            }
+        ),
+        label='Enter your message',
+        required=True
+    )
     class Meta:
         model = models.Contact
         fields = (
@@ -101,125 +133,57 @@ class ContactForm(forms.ModelForm):
             'subject',
             'message',
         )
-        widgets = {
-            'name': forms.TextInput(
-                attrs = {
-                    'class': 'form-control',
-                    'placeholder': 'Your name'
-                }
-            ),
-            'email': forms.EmailInput(
-                attrs = {
-                    'class': 'form-control',
-                    'placeholder': 'Your email'
-                }
-            ),
-            'subject': forms.TextInput(
-                attrs = {
-                    'class': 'form-control',
-                    'placeholder': 'Your subject'
-                }
-            ),
-            'message': forms.Textarea(
-                attrs = {
-                    'class': 'form-control',
-                    'style': "height: 100px",
-                    'placeholder': 'Your message Here!'
-                }
-            )
-        }
-        
+    
 class NewsletterForm(forms.ModelForm):
+    email = forms.EmailField(
+        widget=forms.EmailInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'Your Email'
+            }
+        ),
+        label='Enter your email'
+    )
     class Meta:
         model = models.Newsletter
         fields = ('email',)
-        widgets = {
-            'email': forms.EmailInput(
-                attrs = {
-                    'class': 'form-control'
-                }
-            )
+        
+class QuotationForm(forms.ModelForm):
+    name = forms.CharField(
+    widget=forms.TextInput(
+        attrs={
+            'class': 'form-control',
+            'placeholder': 'Your name'
         }
-        
-# class ServicesForm(forms.ModelForm):
-#     class Meta:
-#         model = models.Services
-#         fields = (
-#             'name',
-#             'description'
-#         )
-#         widgets = {
-#             'name': forms.TextInput(
-#                 attrs = {
-#                     'class': 'form-control'
-#                 }
-#             ),
-#             'description': forms.Textarea(
-#                 attrs = {
-#                     'class': 'form-control'
-#                 }
-#             )
-#         }
-        
-# class AppointmentForm(forms.ModelForm):
-#     class Meta:
-#         model = models.Appointments
-#         fields = (
-#             'name',
-#             'email',
-#             'phone_number',
-#             'service',
-#             'appointment_date',
-#             'appointment_time',
-#             'message',
-#         )
-#         widgets = {
-#             'name': forms.TextInput(
-#                 attrs = {
-#                     'class': 'form-control',
-#                     'placeholder': 'Your Name'
-#                 }
-#             ),
-#             'email': forms.EmailInput(
-#                 attrs={
-#                     'class': 'form-control',
-#                     'placeholder': 'Your email'
-#                 }
-#             ),
-#             'phone_number': forms.TextInput(
-#                 attrs = {
-#                     'class': 'form-control',
-#                     'placeholder': 'Your phone number'
-#                 }
-#             ),
-#             'service': forms.Select(
-#                 choices=services_list,
-#                 attrs={
-#                     'class': 'form-control form-select',
-#                     'placeholder': 'Select Your Desired Service',
-#                     'style': 'height: 55px;'
-#                 }
-#             ),
-#             'appointment_date': forms.DateInput(
-#                 attrs = {
-#                     'class': 'form-control',
-#                     'placeholder': 'Appointment Date'
-#                 }
-#             ),
-#             'appointment_time': forms.Select(
-#                 choices = time_slots,
-#                 attrs = {
-#                     'class': 'form-control datetimepicker-input',
-#                     'placeholder': 'Time Slot',
-#                     'style': 'height: 55px;'
-#                 }
-#             ),
-#             'message': forms.Textarea(
-#                 attrs = {
-#                     'class': 'form-control',
-#                     'placeholder': 'Your Message Here!',
-#                     'rows': 5
-#                 }
-#             )
-#         }
+    ),
+    label='Enter your name',
+    required=True
+    )
+    email = forms.EmailField(
+        widget=forms.EmailInput(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'Your email'
+            }
+        ),
+        label='Enter your email',
+        required=True
+    )
+    message = forms.CharField(
+        widget=forms.Textarea(
+            attrs={
+                'class': 'form-control',
+                'placeholder': 'Your message'
+            }
+        ),
+        label='Enter your message',
+        required=True
+    )
+    class Meta:
+        model = models.Quotation
+        fields = (
+            'name',
+            'email',
+            'message',
+        )
         

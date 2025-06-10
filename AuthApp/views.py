@@ -1,35 +1,39 @@
 from django.shortcuts import render, redirect
-from django.contrib import messages
-from django.contrib.auth import login, logout, authenticate
-from django.contrib.auth.decorators import login_required
 from . import forms
-# from verify_email.email_handler import send_verification_email, resend_verification_email
+from . import models
+from django.contrib.auth import login, logout, authenticate, update_session_auth_hash
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from BlogApp import models as BlogModels
+from BlogApp.models import BlogPosts
 from django.core.paginator import Paginator
-from django.contrib.auth import views as authViews
+from django.conf import settings
+from imagekitio import ImageKit
 from imagekitio.models.UploadFileRequestOptions import UploadFileRequestOptions
 import os
-# from HivePulse import settings
+from django.contrib.auth import views as auth_views
+from HivePulse.settings import imagekit
 from HivePulse import settings
 
 # Create your views here.
 
-def loginUser(request):
+def login_user(request):
     form = forms.LoginForm(request.POST)
     if request.user.is_authenticated:
         messages.warning(
             request,
-            'You are already logged in!',
-            extra_tags='error'
+            message=f'You are already logged in!',
+            extra_tags='danger'
         )
         return redirect('/')
     if request.method == 'POST':
         if form.is_valid():
+            username = form.cleaned_data['username']
+            password = form.cleaned_data['password']
             attempt = authenticate(
                 request,
-                username = form.cleaned_data['username'],
-                password = form.cleaned_data['password']
+                username=username,
+                password=password
             )
             if attempt:
                 login(
@@ -38,202 +42,232 @@ def loginUser(request):
                 )
                 messages.success(
                     request,
-                    'You are now logged in!',
+                    message=f'You are now logged into the website',
                     extra_tags='success'
                 )
                 return redirect('/auth/dashboard')
             else:
                 messages.warning(
                     request,
-                    'Invalid Username or password!',
-                    extra_tags='error'
+                    message=f'Invalid Username or password!',
+                    extra_tags='danger'
                 )
-                return redirect('/auth/login')
         else:
             messages.warning(
                 request,
-                f'Your form has errors!\n{form.errors}',
-                extra_tags='error'
+                message=f'Your form has errors!\n{form.errors}',
+                extra_tags='danger'
             )
-            return redirect('/auth/login')
-    else:
-        return render(
-            request,
-            'AuthApp/login.html',
-            {
-                'form': form
-            }
-        )
-        
-@login_required(login_url='/auth/login')
-def logoutUser(request):
-    logout(request)
-    messages.success(
+    return render(
         request,
-        'You are now logged out of the website!',
-        extra_tags='success'
+        'AuthApp/login.html',
+        {
+            'form': form,
+            'login': True
+        }
     )
-    return redirect('/auth/login')
-
-
-def registerUser(request):
+    
+def logout_user(request):
+    if request.user.is_authenticated:
+        logout(request)
+        messages.success(
+            request,
+            message=f'Logout Successful!',
+            extra_tags='success'
+        )
+        return redirect('/auth/login')
+    else:
+        messages.warning(
+            request,
+            message=f'You have to login to visit this page',
+            extra_tags='danger'
+        )
+        return redirect('/auth/login')
+    
+def register_user(request):
     form = forms.RegisterForm(request.POST)
     if request.user.is_authenticated:
         messages.warning(
             request,
-            'You are already registered on this site!',
-            extra_tags='error'
+            message=f'You are already registered on this site!',
+            extra_tags='danger'
         )
-        return redirect('/')
+        return redirect('/auth/dashboard') 
     if request.method == 'POST':
         if form.is_valid():
             form_email = form.cleaned_data['email']
-            email_query = None
-            try:
-                email_query = User.objects.filter(email = form_email).first()
-            except Exception as error:
-                email_query = None
-            if email_query is None:
-                # logic for email verification
-                # send_verification_email(request, form)
-                # return render(
-                #     request,
-                #     'AuthApp/register-redirect.html',
-                #     {
-                        
-                #     }
-                # )
+            user_query = User.objects.filter(email=form_email).first()
+            if user_query:
+                messages.warning(
+                    request,
+                    message=f'This email is already registered with another account! Please try again with a different one',
+                    extra_tags='danger'
+                )
+                form.fields['email'].help_text = f'Change this email! It is associated with another account'
+                return render(
+                    request,
+                    'AuthApp/register.html',
+                    {
+                        'form': form
+                    }
+                )
+            else:
                 form.save()
                 messages.success(
                     request,
-                    'You are now registered on this website!',
+                    message=f'You are now registered in on this site!',
                     extra_tags='success'
                 )
-                attempt = authenticate(
-                    request,
-                    username = form.cleaned_data['username'],
-                    password = form.cleaned_data['password1']
-                )
-                login(
-                    request,
-                    attempt
-                )
-                return redirect('/auth/dashboard')
-            else:
-                messages.warning(
-                    request,
-                    'This email already exists! Try again with a different one!',
-                    extra_tags='error'
-                )
-                return redirect('/auth/register')
+                return redirect('/auth/login') 
         else:
             messages.warning(
                 request,
-                f'Your form has errors!\n{form.errors}',
-                extra_tags='error'
+                message=f'Your form has errors!\n{form.errors}',
+                extra_tags='danger'
             )
-            return redirect('/auth/register')
-    else:
-        return render(
-            request,
-            'AuthApp/register.html',
-            {
-                'form': form
-            }
-        )
-        
+            return render(
+                request,
+                'AuthApp/register.html',
+                {
+                    'form': form
+                }
+            )
+    return render(
+        request,
+        'AuthApp/register.html',
+        {
+            'form': form,
+            'register': True
+        }
+    )
+    
 @login_required(login_url='/auth/login')
-def editUser(request):
-    form = forms.UserEditForm(request.POST or None, instance = request.user)
+def edit_user(request):
+    form = forms.CustomUserChangeForm(request.POST or None, instance=request.user)
     if request.method == 'POST':
         if form.is_valid():
             form_email = form.cleaned_data['email']
-            email_query = None
-            try:
-                email_query = User.objects.filter(email = form_email).exclude(pk = request.user.id).first()
-            except Exception as error:
-                email_query = None
-            if email_query is not None:
+            email_query = User.objects.filter(email=form_email).exclude(pk=request.user.pk).first()
+            if email_query:
                 messages.warning(
                     request,
-                    'Your email is associated with another account! Kindly use a different one',
-                    extra_tags='error'
+                    message=f'Invalid Email! This email is associated with another account',
+                    extra_tags='danger'
                 )
-                return redirect('/auth/edit-user')
+                return render(
+                    request,
+                    'AuthApp/edit-user.html',
+                    {
+                        'form': form
+                    }
+                )
             else:
                 form.save()
                 messages.success(
                     request,
-                    'Your account details have been edited and saved!',
+                    message=f'Your account is now updated!',
+                    extra_tags='success'
+                )
+                return redirect('/auth/dashboard')  
+        else:
+            messages.warning(
+                request,
+                message=f'Your form has errors!\n{form.errors}',
+                extra_tags='danger'
+            )
+            return render(
+                request,
+                'AuthApp/edit-user.html',
+                {
+                    'form': form
+                }
+            )
+    return render(
+        request,
+        'AuthApp/edit-user.html',
+        {
+            'form': form,
+            'edit_user': True
+        }
+    )
+    
+@login_required(login_url='/auth/login')
+def edit_password(request):
+    form = forms.CustomEditPasswordForm(request.user, request.POST)
+    if request.method == 'POST':
+        if form.is_valid():
+            user = request.user
+            form.save()
+            update_session_auth_hash(
+                request,
+                user
+            )
+            messages.success(
+                request,
+                message=f'Your password is updated!',
+                extra_tags='success'
+            )
+            return redirect('/auth/dashboard') 
+        else:
+            messages.warning(
+                request,
+                message=f'Your form has errors!\n{form.errors}',
+                extra_tags='danger'
+            )
+            return redirect('/auth/edit-password')
+    return render(
+        request,
+        'AuthApp/edit-password.html',
+        {
+            'form': form,
+            'edit_password': True
+        }
+    )
+    
+@login_required(login_url='/auth/login')
+def delete_user(request):
+    form = forms.DeleteConfirmation(request.POST)
+    if request.method == 'POST':
+        if request.user.is_superuser and request.user.is_staff:
+            messages.warning(
+                request,
+                message=f'Accounts with escalated permissions cannot be deleted!',
+                extra_tags='danger'
+            )
+            return redirect('/auth/dashboard')
+        if form.is_valid():
+            password = form.cleaned_data['password']
+            attempt = authenticate(
+                request,
+                username=request.user.username,
+                password=password
+            )
+            if attempt is not None:
+                request.user.delete()
+                messages.success(
+                    request,
+                    message=f'Your account has been deleted successfully!',
                     extra_tags='success'
                 )
                 return redirect('/')
-        else:
-            messages.warning(
-                request,
-                f'Your form has errors!\n{form.errors}',
-                extra_tags='error'
-            )
-            return redirect('/auth/edit-user')
-    else:
-        return render(
-            request,
-            'AuthApp/edit-user.html',
-            {
-                'form': form
-            }
-        )
-        
-@login_required(login_url="/auth/login")
-def deleteUser(request):
-    if request.method == 'POST':
-        user_query = User.objects.filter(id = request.user.id).first()
-        user_query.delete()
-        messages.success(
-            request,
-            'Your account has been deleted permanently! We will miss you',
-            extra_tags='success'
-        )
-        return redirect('/')
-    else:
-        return render(
-            request,
-            'AuthApp/delete-user.html',
-            {
-                
-            }
-        )
-        
+            else:
+                messages.warning(
+                    request,
+                    message=f'Account deletion not possible due to incorrect password!',
+                    extra_tags='danger'
+                )
+                return redirect('/auth/delete-user')
+    return render(
+        request,
+        'AuthApp/delete-user.html',
+        {
+            'form': form,
+            'delete_user': True
+        }
+    )
+    
 @login_required(login_url='/auth/login')
-def editPassword(request):
-    form = forms.UserPasswordChangeForm(request.user, request.POST)
-    if request.method == 'POST':
-        if form.is_valid():
-            form.save()
-            messages.success(
-                request,
-                'Your password was changed and now you can login with your new password!',
-                extra_tags='success'
-            )
-            return redirect('/')
-        else:
-            messages.warning(
-                request,
-                f'Your form has errors: {form.errors}',
-                extra_tags='error'
-            )
-            return redirect('/auth/edit-password')
-    else:
-        return render(
-            request,
-            'AuthApp/edit-password.html',
-            {
-                'form': form
-            }
-        )
-        
-@login_required(login_url='/auth/login')
-def createProfile(request):
+def create_profile(request):
     check = None
     try:
         check = request.user.profile
@@ -259,7 +293,7 @@ def createProfile(request):
                 with open(temp_image_path, 'wb+') as temp_file:
                     for chunk in image.chunks():
                         temp_file.write(chunk)
-                upload_response = settings.imagekit.upload_file(
+                upload_response = imagekit.upload_file(
                     file=open(
                         temp_image_path, 
                         'rb'
@@ -301,10 +335,9 @@ def createProfile(request):
             'create_profile': True
         }
     )
- 
-         
+    
 @login_required(login_url='/auth/login')
-def editProfile(request):
+def edit_profile(request):
     check = None
     try:
         check = request.user.profile
@@ -322,7 +355,6 @@ def editProfile(request):
         request.FILES,
         instance=request.user.profile
     )
-    print(form.fields)
     if request.method == 'POST':
         if form.is_valid():
             profile = form.save(commit=False)
@@ -334,7 +366,7 @@ def editProfile(request):
                 with open(temp_image_path, 'wb+') as temp_file:
                     for chunk in image.chunks():
                         temp_file.write(chunk)
-                upload_response = settings.imagekit.upload_file(
+                upload_response = imagekit.upload_file(
                     file=open(
                         temp_image_path, 
                         'rb'
@@ -380,25 +412,77 @@ def editProfile(request):
                 'edit_profile': True
             }
         )
- 
+        
 @login_required(login_url='/auth/login')
-def dashboard(request):
-    post_query = BlogModels.BlogPost.objects.filter(author = request.user).all().order_by('-pk')
-    pagination = Paginator(post_query, 2)
+def user_dashboard(request):
+    post_query = BlogPosts.objects.filter(author=request.user).all().order_by('-pk')
+    post_none = True
+    if post_query is not None:
+        post_none = False
+    pagination = Paginator(post_query, 3)
     page = request.GET.get('page')
-    posts = pagination.get_page(page)
+    post_query = pagination.get_page(page)
+    user_posts = BlogPosts.objects.filter(
+        likes=request.user, 
+        hide_post=False
+    ).all().order_by('-pk')
+    user_post_none = True
+    if user_posts is not None:
+        user_post_none = False
+    user_pagination = Paginator(user_posts, 3)
+    user_page = request.GET.get('page')
+    user_posts = user_pagination.get_page(user_page)
     return render(
         request,
         'AuthApp/dashboard.html',
         {
-            'posts': posts
+            'post_none': post_none,
+            'posts': post_query,
+            'dashboard': True,
+            'user_post_none': user_post_none,
+            'user_posts': user_posts
         }
     )
     
-class CustomPasswordResetView(authViews.PasswordResetView):
-    form_class = forms.CustomPasswordResetForm
-    template_name = 'AuthApp/password-reset.html'
+# forgot password implementation
 
-class CustomPasswordResetConfirmView(authViews.PasswordResetConfirmView):
+class CustomPasswordResetView(auth_views.PasswordResetView):
+    form_class = forms.CustomPasswordResetForm
+    template_name = 'AuthApp/forgot-password/password-reset.html'
+
+class CustomPasswordResetConfirmView(auth_views.PasswordResetConfirmView):
     form_class = forms.CustomSetPasswordForm
-    template_name = 'AuthApp/password-set.html'
+    template_name = 'AuthApp/forgot-password/password-set.html'
+    
+# handling email duplication error
+# @login_required(login_url='/auth/login')
+# def email_duplication(request, email):
+#     if request.user.is_superuser or request.user.is_staff:
+#         email_query = User.objects.filter(email=email).first()
+#         if email_query:
+#             messages.warning(
+#                 request,
+#                 message=f'You are using an email that is associated with another user!',
+#                 extra_tags='danger'
+#             )
+#             return render(
+#                 request,
+#                 'AuthApp/email-duplication.html',
+#                 {
+                    
+#                 }
+#             )
+#         else:
+#             messages.warning(
+#                 request,
+#                 message=f'You can not visit this page without any reason!',
+#                 extra_tags='danger'
+#             )
+#             return redirect('/auth/dashboard')
+#     else:
+#         messages.warning(
+#             request,
+#             message=f'Invalid Operation! You can not visit this page',
+#             extra_tags='danger'
+#         )
+#         return redirect('/auth/dashboard')

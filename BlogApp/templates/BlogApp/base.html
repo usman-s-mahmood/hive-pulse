@@ -115,27 +115,31 @@
                                         <a href="/blog" class="nav-item nav-link">Blog</a>
                                         {% if user.is_authenticated %}
                                         <div class="nav-item dropdown">
-                                            <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">User Options</a>
-                                            <div class="dropdown-menu border-0 m-0">
-                                                <a href="/auth/dashboard" class="dropdown-item">Dashboard</a>
-                                                <a href="/auth/edit-user" class="dropdown-item">Edit Account</a>
-                                                <a href="/auth/edit-password" class="dropdown-item">Edit Password</a>
+                                            <a href="/auth/dashboard" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">User Options</a>
+                                            <div class="dropdown-menu bg-light rounded-0 rounded-bottom m-0">
+                                                <a href="/auth/dashboard" class="dropdown-item {% if dashboard %}active{% endif %}">Dashboard</a>
+                                                <a href="/auth/edit-user" class="dropdown-item {% if edit_user %}active{% endif %}">Edit Account</a>
+                                                <a href="/auth/edit-password" class="dropdown-item {% if edit_password %}active{% endif %}">Edit password</a>
                                                 {% if user.profile %}
-                                                    <a href="/auth/edit-profile" class="dropdown-item">Edit Profile</a>
+                                                <a href="/auth/edit-profile" class="dropdown-item {% if edit_profile %}active{% endif %}">Edit Profile</a>
                                                 {% else %}
-                                                    <a href="/auth/create-profile" class="dropdown-item">Create Profile</a>
+                                                <a href="/auth/create-profile" class="dropdown-item {% if create_profile %}active{% endif %}">Create Profile</a>
+                                                {% endif %}
+                                                {% if user.is_staff or user.is_superuser %}
+                                                <a href="/add-post" class="dropdown-item {% if add_post %}active{% endif %}">Add Post</a>
+                                                <a href="/add-category" class="dropdown-item {% if add_category %}active{% endif %}">Add Category</a>
+                                                <a href="/add-service" class="dropdown-item {% if add_service %}active{% endif %}">Add Service</a>
                                                 {% endif %}
                                                 {% if user.is_superuser %}
-                                                    <a href="/hive-pulse-admin-panel" class="dropdown-item">Admin Panel</a>
+                                                    <a href="/admin-area" class="dropdown-item">Admin Panel</a>
                                                 {% endif %}
                                                 <a href="/auth/logout" class="dropdown-item">Logout</a>
                                             </div>
                                         </div>
-                                        <a href="/auth/logout" class="nav-item nav-link">Logout</a>
-                                    {% else %}
-                                        <a href="/auth/login" class="nav-item nav-link">Login</a>
-                                        <a href="/auth/register" class="nav-item nav-link">Register</a>
-                                    {% endif %}
+                                        {% else %}
+                                            <a href="/auth/login" class="nav-item nav-link {% if login %}active{% endif %}">Login</a>
+                                            <a href="/auth/register" class="nav-item nav-link {% if register %}active{% endif %}">Register</a>
+                                        {% endif %}
                                         {% comment %} <div class="nav-item dropdown">
                                             <a href="#" class="nav-link" data-bs-toggle="dropdown">
                                                 <span class="dropdown-toggle">Pages</span>

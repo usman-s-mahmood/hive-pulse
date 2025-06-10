@@ -1,58 +1,61 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from . import forms
 from . import models
-from django.core.mail import send_mail
-from datetime import datetime, date
+from AuthApp import forms as auth_forms
+from django.contrib.auth import authenticate
 from django.core.paginator import Paginator
+from django.contrib.auth.decorators import login_required
+from imagekitio import ImageKit
 from imagekitio.models.UploadFileRequestOptions import UploadFileRequestOptions
+# from django.conf import settings
+import os
 from HivePulse.settings import imagekit
+from HivePulse import settings
+
 # Create your views here.
 
 def index(request):
-    # form = forms.AppointmentForm(request.POST or None)
-
+    services = models.Service.objects.all().order_by('-pk')
     return render(
         request,
         'BlogApp/index.html',
         {
-            
+            'services': services,
+            'home': True
         }
     )
     
 @login_required(login_url='/auth/login')
-def addCategory(request):
+def add_category(request):
     form = forms.AddCategoryForm(request.POST)
+    if not request.user.is_superuser or not request.user.is_staff:
+        messages.warning(
+            request,
+            message=f'Invalid Operation! You are not allowed to visit this page',
+            extra_tags='danger'
+        )
+        return redirect('/auth/dashboard')
     if request.method == 'POST':
         if form.is_valid():
-            form_category = form.cleaned_data['name']
-            category_query = None
-            try:
-                category_query = models.Category.objects.filter(name = form_category).first()
-            except Exception as error:
-                category_query = None
-            if category_query is None:
-                form.instance.added_by = request.user.username
-                form.save()
-                messages.success(
-                    request,
-                    f'Your category: {form_category} is now added to the database',
-                    extra_tags='success'
-                )
-                return redirect('/add-category')
-            else:
-                messages.warning(
-                    request,
-                    'This category already exists!',
-                    extra_tags='error'
-                )
-                return redirect('/add-category')
+            form.instance.added_by = request.user
+            category_name = form.cleaned_data['name']
+            category_name = category_name.lower()
+            form.instance.name = category_name
+            # print(form.instance.name)
+            form.save()
+            messages.success(
+                request,
+                message=f'Your category is now added to the system!',
+                extra_tags='success'
+            )
+            return redirect('/add-category')
         else:
             messages.warning(
                 request,
-                f'Your form has errors!\n{form.errors}',
-                extra_tags='error'
+                message=f'Your form has errors!\n{form.errors}',
+                extra_tags='danger'
             )
             return render(
                 request,
@@ -61,92 +64,162 @@ def addCategory(request):
                     'form': form
                 }
             )
-    else:
-        return render(
-            request,
-            'BlogApp/add-category.html',
-            {
-                'form': form
-            }
-        )
-        
+    return render(
+        request,
+        'BlogApp/add-category.html',
+        {
+            'form': form,
+            'add_category': True
+        }
+    )
+    
 @login_required(login_url='/auth/login')
-def addPost(request):
-    form = forms.AddBlogPostForm(request.POST, request.FILES)
+def add_post(request):
+    if (request.user.is_active) and (not request.user.is_superuser or not request.user.is_staff):
+        messages.warning(
+            request,
+            message=f'You are not allowed to visit this area!',
+            extra_tags='danger'
+        )
+        return redirect('/auth/dashboard')
+    form = forms.AddPostForm(
+        request.POST,
+        request.FILES
+    )
     if request.method == 'POST':
         if form.is_valid():
             form.instance.author = request.user
-            form.save()
+            form.instance.category = models.Category.objects.filter(name=request.POST.get('category')).first()
+            post = form.save(commit=False)
+            if 'thumbnail_url' in request.FILES:
+                image = request.FILES['thumbnail_url']
+                # print(image)
+                temp_image_path = os.path.join(settings.MEDIA_ROOT, f'tempfiles/blog-thumbnail/{image.name}')
+                os.makedirs(os.path.dirname(temp_image_path), exist_ok=True)
+                with open(temp_image_path, 'wb+') as temp_file:
+                    for chunk in image.chunks():
+                        temp_file.write(chunk)
+                upload_response = imagekit.upload_file(
+                    file=open(
+                        temp_image_path, 
+                        'rb'
+                    ),
+                    file_name=image.name,
+                    options=UploadFileRequestOptions(
+                        folder='/hivepulse/blog_thumbnails/'
+                    )
+                )
+                post.thumbnail = upload_response.url
+                # print('reached if block')
+                if os.path.exists(temp_image_path):
+                    os.remove(temp_image_path)
+            post.save() # it works!
+            # print('post saved!')
             messages.success(
                 request,
-                'Your post has been added!',
+                message=f'Your post has been added to the system!',
                 extra_tags='success'
             )
-            return redirect(f'/post-view/{form.cleaned_data['title'].replace(' ', '-')}/{form.instance.pk}')
+            print(form.instance.slug)
+            return redirect(f'/posts/{form.instance.slug}') 
         else:
             messages.warning(
                 request,
-                f'Your form has errors!{form.errors}',
-                extra_tags='error'
+                message=f'Your form has errors!\n{form.errors}',
+                extra_tags='danger'
             )
             return render(
                 request,
                 'BlogApp/add-post.html',
                 {
-                    'form': form
-                }
+                    'form': form,
+                    'categories': models.Category.objects.all()
+                }        
             )
-    else:
-        return render(
-            request,
-            'BlogApp/add-post.html',
-            {
-                'form': form
-            }
-        )
-        
+    return render(
+        request,
+        'BlogApp/add-post.html',
+        {
+            'form': form,
+            'categories': models.Category.objects.all(),
+            'add_post': True
+        }
+    )
+    
 @login_required(login_url='/auth/login')
-def editPost(request, slug, post_id):
-    post_query = None
-    try:
-        post_query = models.BlogPost.objects.filter(pk = post_id, title = slug.replace('-', ' ')).first()
-    except Exception as error:
-        post_query = None
-    if post_query == None:
+def edit_post(request, id):
+    if not request.user.is_superuser or not request.user.is_staff:
         messages.warning(
             request,
-            'No such post exists in the database!',
-            extra_tags='error'
+            message=f'You are not allowed to visit this area!',
+            extra_tags='danger'
         )
-        return redirect('/')
-    elif post_query != None and post_query.author == request.user:
-        form = forms.AddBlogPostForm(request.POST, request.FILES, instance = post_query)
-        if request.method == 'POST':
-            if form.is_valid():
-                form.instance.author = request.user
-                form.save()
-                messages.success(
-                    request,
-                    'Your post has now been edited!',
-                    extra_tags='success'
+        return redirect('/auth/dashboard')
+    post_query = models.BlogPosts.objects.filter(id=id).first()
+    if post_query is None:
+        messages.warning(
+            request,
+            message=f'Invalid Post ID! No post exists with this ID',
+            extra_tags='danger'
+        )
+        return redirect('/auth/dashboard')
+    elif post_query.author.id != request.user.id or not request.user.is_superuser:
+        messages.warning(
+            request,
+            message=f'Invalid Operation! You can not the post of another user',
+            extra_tags='danger'
+        )
+        return redirect('/auth/dashboard')
+    form = forms.AddPostForm(
+        request.POST or None,
+        request.FILES,
+        instance=post_query
+    )
+    if request.method == 'POST':
+        if form.is_valid():
+            form.instance.category = models.Category.objects.filter(
+                name=request.POST.get('category')
+            ).first()
+            post = form.save(commit=False)
+            if 'thumbnail_url' in request.FILES:
+                image = request.FILES['thumbnail_url']
+                # print(image)
+                temp_image_path = os.path.join(settings.MEDIA_ROOT, f'tempfiles/blog-thumbnail/{image.name}')
+                os.makedirs(os.path.dirname(temp_image_path), exist_ok=True)
+                with open(temp_image_path, 'wb+') as temp_file:
+                    for chunk in image.chunks():
+                        temp_file.write(chunk)
+                upload_response = imagekit.upload_file(
+                    file=open(
+                        temp_image_path, 
+                        'rb'
+                    ),
+                    file_name=image.name,
+                    options=UploadFileRequestOptions(
+                        folder='/hivepulse/blog_thumbnails/'
+                    )
                 )
-                return redirect(f'/post-view/{form.cleaned_data['title'].replace(' ', '-')}/{form.instance.pk}')
-            else:
-                messages.warning(
-                    request,
-                    f'Your form has errors!\n{form.errors}',
-                    extra_tags='error'
-                )
-                form = forms.AddBlogPostForm(instance = post_query)
-                return render(
-                    request,
-                    'BlogApp/edit-post.html',
-                    {
-                        'form': form
-                    }
-                )
+                post.thumbnail = upload_response.url
+                # print('reached if block')
+                if os.path.exists(temp_image_path):
+                    os.remove(temp_image_path)
+            post.save() # it works!
+            # print('post saved!')
+            messages.success(
+                request,
+                message=f'You post has now been edited!',
+                extra_tags='success'
+            )
+            title_slug = models.BlogPosts.objects.filter(id=id).first()
+            title_slug = title_slug.slug
+            print(title_slug)
+            return redirect(f'/posts/{title_slug}') # -- /post/{title_slug}
         else:
-            form = forms.AddBlogPostForm(instance = post_query)
+            messages.warning(
+                request,
+                message=f'Your form has errors!\n{form.errors}',
+                extra_tags='danger'
+            )
             return render(
                 request,
                 'BlogApp/edit-post.html',
@@ -155,265 +228,93 @@ def editPost(request, slug, post_id):
                 }
             )
     else:
+        form = forms.AddPostForm(
+            instance=post_query
+        )
+        return render(
+            request,
+            'BlogApp/edit-post.html',
+            {
+                'form': form,
+                'categories': models.Category.objects.all(),
+                'edit_post': True
+            }
+        )
+        
+@login_required(login_url='/auth/login')
+def delete_post(request, id):
+    if not request.user.is_superuser or not request.user.is_staff:
         messages.warning(
             request,
-            'You can only edit your posts! This post is associated with another user',
-            extra_tags='error'
+            message=f'You are not allowed to visit this area!',
+            extra_tags='danger'
         )
-        return redirect('/')
-    
-@login_required(login_url='/auth/login')
-def deletePost(request, post_id):
-    post_query = None
-    try:
-        post_query = models.BlogPost.objects.filter(id = post_id).first()
-    except Exception as error:
-        post_query = None
+        return redirect('/auth/dashboard')
+    post_query = models.BlogPosts.objects.filter(id=id).first()
     if post_query is None:
         messages.warning(
             request,
-            'This post does not exist!',
-            extra_tags='error'
+            message=f'Invalid Post ID! No post exists with this ID',
+            extra_tags='danger'
         )
-        return redirect('/')
-    elif post_query != None:
-        if post_query.author == request.user:
-            if request.method == 'POST':
+        return redirect('/auth/dashboard')
+    elif post_query.author.id != request.user.id or not request.user.is_superuser:
+        messages.warning(
+            request,
+            message=f'Invalid Operation! You can not the post of another user',
+            extra_tags='danger'
+        )
+        return redirect('/auth/dashboard')
+    form = auth_forms.DeleteConfirmation(request.POST)
+    if request.method == 'POST':
+        if form.is_valid():
+            username = request.user.username
+            password = form.cleaned_data['password']
+            attempt = authenticate(
+                request,
+                username=username,
+                password=password
+            )
+            if attempt:
                 post_query.delete()
                 messages.success(
                     request,
-                    'Your post is now deleted!',
+                    message=f'Your post has been deleted!',
                     extra_tags='success'
                 )
-                return redirect('/')
-            return render(
-                request,
-                'BlogApp/delete-post.html',
-                {
-                    'title': post_query.title
-                }
-            )
-        else:
-            messages.warning(
-                request,
-                'You can not delete posts associated with other users!',
-                extra_tags='error'
-            )
-            return redirect('/')
-    else:
-        messages.warning(
-            request,
-            'Error in fetching content from database!',
-            extra_tags='error'
-        )
-        return redirect('/')
-    
-def contactView(request):
-    form = forms.ContactForm(request.POST)
-    if request.method == 'POST':
-        if form.is_valid():
-            name = form.cleaned_data['name']
-            email = form.cleaned_data['email']
-            subject = form.cleaned_data['subject']
-            message = form.cleaned_data['message']
-            form.save()
-            try:
-                send_mail(
-                    subject = "Contact Query from Upwave Builders Blog!",
-                    message = f"Name: {name}\nEmail: {email}\nSubject: {subject}\nmessage: {message}",
-                    recipient_list=['muhammadusman27virgo@yahoo.com'],
-                    from_email='muhammadusman27virgo@yahoo.com'
-                )
-            except Exception as error:
-                with open('logs.txt', 'a') as file:
-                    file.write(f'\n===============================================\nError Occured at contact form endpoint -> {datetime.now()}: {error}\n===============================================\n')
+                return redirect('/auth/dashboard')
             else:
-                send_mail(
-                    subject = "Contact Query recieved from Upwave Builders Blog!",
-                    message = f"Dear {name}, \nThank you for contacting us, We have recieved your contact query and we will soon reply to your query.\nsincerely,\nUpwave Builders IT Team",
-                    recipient_list=[email],
-                    from_email='muhammadusman27virgo@yahoo.com'
+                messages.warning(
+                    request,
+                    message=f'Invalid Password! Try again',
+                    extra_tags='danger'
                 )
-            messages.success(
-                request,
-                'Your contact query is submitted! We will reply back soon!',
-                extra_tags='success'
-            )
-            return redirect('/')
+                return redirect(f'/delete-post/{id}')
         else:
             messages.warning(
                 request,
-                f'Your form has errors!\n{form.errors}',
-                extra_tags='error'
+                message=f'You form has errors!\n{form.errors}',
+                extra_tags='danger'
             )
-            return redirect('/contact')
-    else:
-        return render(
-            request,
-            'BlogApp/contact.html',
-            {
-                'form': form
-            }
-        )
-
-def newsletterView(request):
-    form = forms.NewsletterForm(request.POST)
-    if request.method == 'POST':
-        if form.is_valid():
-            form_email = form.cleaned_data['email']
-            email_query = None
-            try:
-                email_query = models.Newsletter.objects.filter(email = form_email).first()
-            except Exception as error:
-                email_query = None
-            if email_query is None:
-                form.save()
-                try:
-                    send_mail(
-                        subject = "Newsletter subscription, Upwave Builders",
-                        message = "Thank you for subscribing to our newsletter! Now you will get the latest updates about our products, services and events. No spam, only relevant information will be shared with you.\nSincerely,\nUpwave Builders IT team",
-                        from_email = "muhammadusman27virgo@yahoo.com",
-                        recipient_list = [form_email]
-                    )
-                except Exception as error:
-                    with open('logs.txt', 'a') as file:
-                        file.write(f'\nError occured at newsletter endpoint -> {datetime.now()}: {error}\n')
-                messages.success(
-                    request,
-                    'Thank you for subscribing to our newsletter!',
-                    extra_tags='success'
-                )
-                return redirect('/')
-            else:
-                messages.success(
-                    request,
-                    'You have already subscribed our newsletter!',
-                    extra_tags='success'
-                )
-                return redirect('/')
-        else:
-            messages.warning(
-                request,
-                'Your form has errors!',
-                extra_tags='error'
-            )
-            return redirect('/newsletter')
-    else:
-        return render(
-            request,
-            'BlogApp/newsletter.html',
-            {
-                'form': form
-            }
-        )
-        
-# @login_required(login_url='/auth/login')
-# def addService(request):
-#     form = forms.ServicesForm(request.POST)
-#     if request.method == 'POST':
-#         if form.is_valid():
-#             service_name = form.cleaned_data['name']
-#             service_query = None
-#             try:
-#                 service_query = models.Services.objects.filter(name=service_name).first()
-#             except Exception as error:
-#                 service_query = None
-#             if service_query is None:
-#                 form.instance.added_by = request.user.username
-#                 form.save()
-#                 messages.success(
-#                     request,
-#                     f'Your service: {service_name} has been added to the database!'
-#                 )
-#                 return redirect('/')
-#             else:
-#                 messages.warning(
-#                     request,
-#                     'This service already exists in the database!'
-#                 )
-#                 return redirect('/')
-#         else:
-#             messages.warning(
-#                 request,
-#                 f'Your form has errors!\n{form.errors}'
-#             )
-#             return redirect('/add-service')
-#     else:
-#         return render(
-#             request,
-#             'BlogApp/add-service.html',
-#             {
-#                 'form': form
-#             }
-#         )
-        
-# def appointmentView(request):
-#     form = forms.AppointmentForm(request.POST or None)
-#     if request.method == 'POST':
-#         if form.is_valid():
-#             form_date = form.cleaned_data['appointment_date']
-#             form_phone_number = form.cleaned_data['phone_number']
-#             if form_date.weekday() in [5, 6] or form_date < date.today():
-#                 messages.warning(
-#                     request,
-#                     'Invalid Date Selected! Kindly pick a day other than saturday or sunday'
-#                 )
-#                 return redirect('/appointment')
-#             else:
-#                 form.save()
-#                 messages.success(
-#                     request,
-#                     'Thank you for submitting your appointment! Our correspondant will contact you soon for confirmation'
-#                 )
-#                 return redirect('/')
-#         else:
-#             messages.warning(
-#                 request,
-#                 f'Your form has errors!\n{form.errors}'
-#             )
-#             return redirect('/appointment')
-#     else:
-#         return render(
-#             request,
-#             'BlogApp/appointment.html',
-#             {
-#                 'form': form
-#             }
-#         )
-        
-def categoryFun():
-    category_query = models.Category.objects.all().order_by('-pk')
-    return category_query
-        
-def postView(request, slug, post_id):
-    post_query = None
-    try:
-        post_query = models.BlogPost.objects.filter(
-            title = slug.replace('-', ' '),
-            pk = post_id
-        ).first()
-    except Exception as error:
-        post_query = None
-    if post_query is not None:
-        return render(
-            request,
-            'BlogApp/post-view.html',
-            {
-                'post_query': post_query,
-                'categories': categoryFun()
-            }
-        )
-    else:
-        messages.warning(
-            request,
-            'This post does not exists!',
-            extra_tags='error'
-        )
-        return redirect('/')
+            return redirect(f'/delete-post/{id}')
+    return render(
+        request,
+        'BlogApp/delete-post.html',
+        {
+            'form': form,
+            'title': post_query.title,
+            'author': post_query.author,
+            'delete_post': True
+        }
+    )
     
-def blogPosts(request):
-    post_query = models.BlogPost.objects.all().order_by('-pk')
-    pagination = Paginator(post_query, 4)
+def return_categories():
+    category_query = models.Category.objects.all()
+    return [category.name for category in category_query]
+    
+def blog_posts(request):
+    posts = models.BlogPosts.objects.filter(hide_post=False).all().order_by('-pk')
+    pagination = Paginator(posts, 2)
     page = request.GET.get('page')
     posts = pagination.get_page(page)
     return render(
@@ -421,143 +322,300 @@ def blogPosts(request):
         'BlogApp/blog-posts.html',
         {
             'posts': posts,
-            'categories': categoryFun()
+            'recents': models.BlogPosts.objects.filter(hide_post=False).all().order_by('-pk')[0:3],
+            'categories': return_categories,
+            'blog': True
         }
     )
     
-def categoryView(request, category):
-    category_list = []
-    for cat in categoryFun():
-        category_list.append(cat.name)
-    if category.replace('-', ' ') in category_list:
-        post_query = models.BlogPost.objects.filter(category = category.replace('-', ' ')).order_by('-pk')
-        pagination = Paginator(post_query, 4)
-        page = request.GET.get('page')
-        posts = pagination.get_page(page)
-        return render(
-            request,
-            'BlogApp/category-view.html',
-            {
-                'posts': posts,
-                'categories': categoryFun(),
-                'category': category.replace('-', ' ')
-            }
-        )
-    else:
+def post_view(request, slug):
+    # slug = slug.replace('-', ' ')
+    # # post_query = models.BlogPosts.objects.filter(title = slug).first()
+    # post_id = request.POST.get('post_id')
+    # # print('The value of post id through POST method is: ', post_id)
+    # post_query = models.BlogPosts.objects.filter(id=post_id).first();
+    post_query = models.BlogPosts.objects.filter(
+        slug=slug,
+        hide_post=False
+    ).first()
+    if post_query is None:
         messages.warning(
             request,
-            'Invalid Category Provided!',
-            extra_tags='error'
+            message=f'Invalid Slug! No post exists with this slug',
+            extra_tags='danger'
         )
-        return redirect('/blog-posts')
+        return redirect('/posts')
+    # print(f'{post_query.author.first_name} - {post_query.author.last_name}')
+    # print(f'{post_query.author}')
+    return render(
+        request,
+        'BlogApp/post-view.html',
+        {
+            'post': post_query,
+            'recents': models.BlogPosts.objects.filter(hide_post=False).all().order_by('-pk')[0:3],
+            'categories': return_categories
+        }
+    )
     
-def searchResults(request, searched):
-    post_query = models.BlogPost.objects.filter(
-        content__contains = searched,
-        title__contains = searched 
-    ).all().order_by('-pk')
-    pagination = Paginator(post_query, 4)
+def category_view(request, category):
+    category_query = models.Category.objects.filter(slug=category).first()
+    if category_query is None:
+        messages.warning(
+            request,
+            message=f'Invalid Category provided!',
+            extra_tags='danger'
+        )
+        return redirect('/posts')
+    post_query = models.BlogPosts.objects.filter(
+        category=category_query,
+        hide_post=False
+    ).all()
+    postsNone = False
+    if not post_query:
+        postsNone = True
+    pagination = Paginator(post_query, 2)
     page = request.GET.get('page')
-    posts = pagination.get_page(page)
+    post_query = pagination.get_page(page)
+    return render(
+        request,
+        'BlogApp/category-view.html',
+        {
+            'posts': post_query,
+            'recents': models.BlogPosts.objects.filter(hide_post=False).all().order_by('-pk')[0:3],
+            'categories': return_categories,
+            'category': category,
+            'postsNone': postsNone
+        }
+    )
+    
+def search_results(request, query):
+    post_query = models.BlogPosts.objects.filter(
+        content__contains = query,
+        hide_post=False
+    ).all().order_by('-pk')
+    post_check = False
+    if post_query:
+        post_check = True
+    pagination = Paginator(post_query, 2)
+    page = request.GET.get('page')
+    post_query = pagination.get_page(page)
     return render(
         request,
         'BlogApp/search-results.html',
         {
-            'posts': posts,
-            'searched': searched,
-            'categories': categoryFun()
+            'posts': post_query,
+            'post_check': post_check,
+            'recents': models.BlogPosts.objects.filter(hide_post=False).all().order_by('-pk')[0:3],
+            'categories': return_categories,
+            'query': query
         }
     )
-    
+
 def search(request):
     if request.method == 'POST':
-        searched = request.POST['searched']
-        return redirect(f'/search-results/{searched}')
-    else:
-        messages.warning(
-            request,
-            'You forgot to search!',
-            extra_tags='error'
-        )
-        return redirect('/blog-posts')
-    
-def searchRedirect(request):
+        query = request.POST.get('search')
+        return redirect(f'/search-results/{query}')
     messages.warning(
         request,
-        'Invalid Search Operation!',
-        extra_tags='error'
+        message=f'You forgot to search!',
+        extra_tags='danger'
     )
-    return redirect('/blog-posts')
+    return redirect('/')
 
-def aboutView(request):
+def search_redirect(request):
+    messages.warning(
+        request,
+        message=f'You forgot to search!',
+        extra_tags='danger'
+    )
+    return redirect('/')
+
+def about_view(request):
     return render(
         request,
         'BlogApp/about.html',
         {
-            
+            'about': True
         }
     )
     
-def featureView(request):
+def contact_view(request):
+    form = forms.ContactForm(request.POST)
+    if request.method == 'POST':
+        if form.is_valid():
+            name = request.POST.get('name')
+            email = request.POST.get('email')
+            subject = request.POST.get('subject')
+            message = request.POST.get('message')
+            form.instance.name = name
+            form.instance.email = email
+            form.instance.subject = subject
+            form.instance.message = message
+            form.save()
+            messages.success(
+                request,
+                message=f'Your contact query is submitted!',
+                extra_tags='success'
+            )
+            return redirect('/contact')
+        else:
+            messages.warning(
+                request,
+                message=f'Your form has errors!\n{form.errors}',
+                extra_tags='danger'
+            )
+            return render(
+                request,
+                'BlogApp/contact.html',
+                {
+                    
+                }
+            )
     return render(
         request,
-        'BlogApp/feature.html',
+        'BlogApp/contact.html',
         {
-            
+            'contact': True
         }
     )
     
-def projectView(request):
+def not_found(request, exception):
     return render(
         request,
-        'BlogApp/project.html',
-        {
-            
-        }
+        'BlogApp/404.html',
+        status=404
     )
     
-# def serviceView(request):
-#     return render(
-#         request,
-#         'BlogApp/service.html',
-#         {
-            
-#         }
-#     )
-    
-def teamView(request):
+def server_error(request):
     return render(
         request,
-        'BlogApp/team.html',
-        {
-            
-        }
-    )
-    
-def testimonialView(request):
-    return render(
-        request,
-        'BlogApp/testimonial.html',
-        {
-            
-        }
+        'BlogApp/500.html',
+        status=500
     )
     
 @login_required(login_url='/auth/login')
-def likePost(request, post_id):
-    post = get_object_or_404(
-        models.BlogPost,
-        id = post_id
+def add_service(request):
+    form = forms.AddServiceForm(request.POST)
+    if not request.user.is_superuser or not request.user.is_staff:
+        messages.warning(
+            request,
+            message=f'Invalid Operation! You are not allowed to visit this page',
+            extra_tags='danger'
+        )
+        return redirect('/auth/dashboard')
+    if request.method == 'POST':
+        if form.is_valid():
+            form.instance.added_by = request.user
+            service_name = form.cleaned_data['name']
+            service_name = service_name.lower()
+            form.instance.name = service_name
+            form.save()
+            messages.success(
+                request,
+                message=f'Your service is now added to the system!',
+                extra_tags='success'
+            )
+            return redirect('/add-service')
+        else:
+            messages.warning(
+                request,
+                message=f'Your form has errors!\n{form.errors}',
+                extra_tags='danger'
+            )
+            return render(
+                request,
+                'BlogApp/add-service.html',
+                {
+                    'form': form
+                }
+            )
+    return render(
+        request,
+        'BlogApp/add-service.html',
+        {
+            'form': form,
+            'add_service': True
+        }
     )
-    if post.likes.filter(id = request.user.id).exists():
+    
+def newsletter_view(request):
+    form = forms.NewsletterForm(request.POST)
+    if request.method == 'POST':
+        if form.is_valid():
+            email = request.POST.get('email')
+            email_query = models.Newsletter.objects.filter(email=email).first()
+            if email_query:
+                messages.warning(
+                    request,
+                    message=f'You have already subscribed to our newsletter',
+                    extra_tags='danger'
+                )
+                return redirect('/')
+            else:
+                form.instance.email = email
+                form.save()
+                messages.success(
+                    request,
+                    message=f'Thank you for subscribing to our newsletter!',
+                    extra_tags='success'
+                )
+                return redirect('/')
+        else:
+            messages.warning(
+                request,
+                message=f'Your form has errors!\n{form.errors}',
+                extra_tags='danger'
+            )
+            return redirect('/')
+    return redirect('/')
+
+def quotation_view(request):
+    form = forms.QuotationForm(request.POST)
+    if request.method == 'POST':
+        if form.is_valid():
+            name = request.POST.get('name')
+            email = request.POST.get('email')
+            service = request.POST.get('service')
+            message = request.POST.get('message')
+            form.instance.name = name
+            form.instance.email = email
+            form.instance.service = service
+            form.instance.message = message
+            form.save()
+            messages.success(
+                request,
+                message=f'Thank you for submitting your query! We will contact you soon',
+                extra_tags='success'
+            )
+            return redirect('/')
+        else:
+            messages.warning(
+                request,
+                message=f'Your form has errors!\n{form.errors}',
+                extra_tags='danger'
+            )
+            return redirect('/')
+    return redirect('/')
+
+@login_required(login_url='/auth/login')
+def like_post(request, post_id):
+    post = models.BlogPosts.objects.filter(id=post_id).first()
+    if post is None:
+        messages.warning(
+            request,
+            message=f'Invalid URL! No post exists with this ID',
+            extra_tags='danger'
+        )
+        return redirect('/posts')
+    if post.likes.filter(id=request.user.id).exists():
         post.likes.remove(request.user)
         messages.success(
             request,
-            'Post Unliked',
-            extra_tags='success'
+            message=f'Post Unliked!',
+            extra_tags='warning'
         )
-        slug = post.title.replace(' ', '-')
-        return redirect(f'/post-view/{slug}/{post.id}')
+        slug = post.slug
+        return redirect(f'/posts/{slug}')
     else:
         post.likes.add(request.user)
         messages.success(
@@ -565,5 +623,76 @@ def likePost(request, post_id):
             'Thank you for liking this post!',
             extra_tags='success'
         )
-        slug = post.title.replace(' ', '-')
-        return redirect(f'/post-view/{slug}/{post.id}')
+        slug = post.slug
+        return redirect(f'/posts/{slug}')
+        
+@login_required(login_url='/auth/login')
+def hide_post(request, post_id):
+    if not request.user.is_superuser or not request.user.is_staff:
+        messages.warning(
+            request,
+            message=f'You are not allowed in this area',
+            extra_tags='danger'
+        )
+        return redirect('/auth/dashboard')
+    post_query = models.BlogPosts.objects.filter(id=post_id).first()
+    if post_query is None:
+        messages.warning(
+            request,
+            message=f'Invalid Post ID! No relevant post found!',
+            extra_tags='danger'
+        )
+        return redirect('/auth/dashboard')
+
+    if post_query.hide_post != True:
+        post_query.hide_post = True
+        post_query.save()
+        print(f'Post Hidden status: {post_query.hide_post}')
+        messages.success(
+            request,
+            message=f'Post set to hidden!',
+            extra_tags='success'
+        )
+        return redirect('/auth/dashboard')
+    messages.warning(
+        request,
+        message=f'Post is already hidden!',
+        extra_tags='danger'
+    )
+    return redirect('/auth/dashboard')
+
+
+@login_required(login_url='/auth/login')
+def unhide_post(request, post_id):
+    if not request.user.is_superuser or not request.user.is_staff:
+        messages.warning(
+            request,
+            message=f'You are not allowed in this area',
+            extra_tags='danger'
+        )
+        return redirect('/auth/dashboard')
+    post_query = models.BlogPosts.objects.filter(id=post_id).first()
+    if post_query is None:
+        messages.warning(
+            request,
+            message=f'Invalid Post ID! No relevant post found!',
+            extra_tags='danger'
+        )
+        return redirect('/auth/dashboard')
+
+    if post_query.hide_post != False:
+        post_query.hide_post = False
+        post_query.save()
+        print(f'Post Hidden status: {post_query.hide_post}')
+        messages.success(
+            request,
+            message=f'Post set to unhidden!',
+            extra_tags='success'
+        )
+        return redirect('/auth/dashboard')
+    messages.warning(
+        request,
+        message=f'Post is already unhidden!',
+        extra_tags='danger'
+    )
+    return redirect('/auth/dashboard')

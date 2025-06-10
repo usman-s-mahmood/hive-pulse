@@ -1,83 +1,150 @@
 {% extends "BlogApp/base.html" %}
 
 {% block body %}
-    <!-- Header Start -->
-    <div class="container-fluid bg-breadcrumb">
-        <div class="container text-center py-5" style="max-width: 900px;">
-            <h4 class="text-white display-4 mb-4 wow fadeInDown" data-wow-delay="0.1s">Blog Posts</h4>
-            <ol class="breadcrumb d-flex justify-content-center mb-0 wow fadeInDown" data-wow-delay="0.3s">
-                <li class="breadcrumb-item"><a href="index.html">Home</a></li>
-                <li class="breadcrumb-item active text-primary">Blog Posts</li>
-            </ol>    
+    <!-- Page Header Start -->
+    <div class="container-fluid page-header py-5 mb-5 wow fadeIn" data-wow-delay="0.1s">
+        <div class="container text-center py-5">
+            <h1 class="display-2 text-white mb-4 animated slideInDown">Blog Posts</h1>
+            <nav aria-label="breadcrumb animated slideInDown">
+                <ol class="breadcrumb justify-content-center mb-0">
+                    <li class="breadcrumb-item"><a href="/">Home</a></li>
+                    <li class="breadcrumb-item"><a href="">Blog</a></li>
+                    <li class="breadcrumb-item text-primary" aria-current="page">Blog Posts</li>
+                </ol>
+            </nav>
         </div>
     </div>
-    <!-- Header End -->
+    <!-- Page Header End -->
     <div class="container">
-        <hr>
-            <p class="fs-1 text-center"><strong class="text-secondary">Blog Posts</strong></p>
-        <hr>
         <div class="row">
-            <div class="col-md-8">
+            <div class="col-md-8 mb-5">
                 {% for post in posts %}
-                    <a href="/post-view/{{post.title|slugify}}/{{post.id}}">
-                        <div class="form-control">
-                            <div class="row">
-                                <div class="container">
-                                    {% if post.thumbnail == '' %}
-                                        <img src="/media/default-img/default-post.png" alt="{{post_query.title}}" class = "img-fluid" width = "1280px">
-                                    {% else %}
-                                        <img src="/media/{{post.thumbnail}}" alt="{{post_query.title}}" class = "img-fluid" width = "1280px">
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <div class="row">
-                                <p class="fs-3"><strong class="text-center"><span class="text-secondary">{{post.title}}</span></strong></p>
-                                <p class="fs-5"><strong class="text-center"><span class="text-secondary">{{post.tagline|slice:":20"}}...</span></strong></p>
-                            </div>
-                            <div class="text-center mt-1">
-                                <a href="/post-view/{{post.title|slugify}}/{{post.id}}" class="btn btn-primary">Read More</a>
-                                {% if post.author == user or user.is_superuser %}
-                                    <a href="/edit-post/{{post.title|slugify}}/{{post.id}}" class="btn btn-primary">Edit Post</a>
-                                    <a href="/delete-post/{{post.id}}" class="btn btn-primary">Delete Post</a>
-                                {% endif %}
-                            </div>
-                        </div>
-                    </a>
-                    <br>
+                    <div class="row">
+                        {% comment %} <form id="imageMainPostForm{{ post.id }}" action="/posts/{{ post.title|slugify }}" method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="post_id" value="{{ post.id }}">
+                        </form>
+                        <a href="javascript:void(0);" onclick="document.getElementById('imageMainPostForm{{ post.id }}').submit();"> {% endcomment %}
+                        <a href="/posts/{{post.slug}}">
+                        {% if post.thumbnail %}
+                            <img src="{{post.thumbnail}}" alt="{{post.title}}" class="img-fluid" width="720px">
+                        {% else %}
+                            <img src="/media/default/default-post.png" alt="{{post.title}}" class="img-fluid" width="720px">
+                        {% endif %}
+                        </a>
+                    </div>
+                    <div class="row">
+                        {% comment %} <form id="titleMainPostForm{{ post.id }}" action="/posts/{{ post.title|slugify }}" method="POST">
+                            {% csrf_token %}
+                            <input type="hidden" name="post_id" value="{{ post.id }}">
+                        </form>
+                        <a href="javascript:void(0);" onclick="document.getElementById('titleMainPostForm{{ post.id }}').submit();"> {% endcomment %}
+                        <a href="/posts/{{post.slug}}">
+                            <p class="fs-3"><strong class="text-dark">{{post.title}}</strong></p>
+                        </a>
+                        <p class="fs-6"><strong class="text-secondary">{{post.tagline|slice:":20"}} ...</strong></p>
+                    </div>
+                    <div class="btn-group mb-5">
+                        
+                        <a class="btn btn-primary me-2" href="/posts/{{post.slug}}">Read More</a>
+                        {% comment %} <a href="/posts/{{post.title|slugify}}" class="btn btn-success">Read Post</a> {% endcomment %}
+                        {% if user.is_staff or user.is_superuser %}
+                        {% if user.id == post.author.id or user.is_superuser %}
+                        {% if post.hide_post == True %}
+                        <a href="/unhide-post/{{post.id}}" class="btn btn-success me-2 ">Unhide Post</a>
+                        {% else %}
+                        <a href="/hide-post/{{post.id}}" class="btn btn-danger me-2">Hide Post</a>
+                        {% endif %}
+                            <a href="/edit-post/{{post.id}}" class="btn btn-success me-2">Edit Post</a>
+                            <a href="/delete-post/{{post.id}}" class="btn btn-danger">Delete Post</a>
+                            <br>
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                    {% comment %} <br> {% endcomment %}
                 {% endfor %}
-                <div class="container text-center">
-                    {% if posts.has_previous %}
-                        <a href="?page={{posts.previous_page_number}}" class="btn btn-primary me-2">Previous</a>
-                    {% endif %}
-                    {% if posts.has_next %}
-                        <a href="?page={{posts.next_page_number}}" class="btn btn-primary">Next</a>
-                    {% endif %}
-                </div>
             </div>
             <div class="col-md-4">
-                <hr>
-                    <form action="/search" class="d-flex" method=POST>
-                        {% csrf_token %}
-                        <input type="text" class="form-control me-2" name="searched" placeholder="Search ...">
-                        <button class="btn btn-primary" type="submit">Search</button>
-                    </form>
-                <hr>
-                    <p class="fs-4"><strong class="text-secondary">Categories</strong></p>
-                    {% for category in categories %}
-                        <a href="/category/{{category.name|slugify}}" class="nav-item nav-link">{{category.name}}</a>
+                <div class="row">
+                        <form class="d-flex" role="search" method=POST action="/search">
+                            {% csrf_token %}
+                            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="search">
+                            <button class="btn btn-outline-primary" type="submit">Search</button>
+                        </form>
+                </div>
+                <br>
+                <div class="row">
+                    <hr>
+                        <p class="fs-4 text-center"><strong>Categories</strong></p>
+                    <hr>
+                    {% for value in categories %}
+                        <a href="/category/{{value|slugify}}">
+                            <p class="fs-6 text-center"><strong class="text-secondary">{{value}}</strong></p>
+                        </a>
                     {% endfor %}
-                <hr>
-                    <p class="fs-4"><strong class="text-secondary">Newsletter</strong></p>
-                    <form action="/newsletter" method=POST>
-                        {% csrf_token %}
-                        <div class="position-relative mx-auto" style="max-width: 400px;">
-                            <input class="form-control bg-transparent w-100 py-3 ps-4 pe-5" type="text" placeholder="Your email" name = "email">
-                            <button type="submit" class="btn btn-primary py-2 position-absolute top-0 end-0 mt-2 me-2">SignUp</button>
+                </div>
+                <div class="row d-flex">
+                    <hr>
+                        <p class="fs-3 text-center"><strong>Recent Posts</strong></p>
+                    <hr>
+                    <div class="row d-flex">
+                    {% for post in recents %}
+                        <div class="row mt-3">
+                            <div class="col-md-4 text-center">
+                                {% comment %} <form id="imageRecentPostsForm{{post.id}}" action="/posts/{{ post.title|slugify }}" method=POST>
+                                    {% csrf_token %}
+                                    <input type="hidden" name="post_id" value={{post.id}}>
+                                </form>
+                                <a 
+                                    href="javascript:void(0);"
+                                    onclick="document.getElementById('imageRecentPostsForm{{post.id}}').submit();"
+                                > {% endcomment %}
+                                <a href="/posts/{{post.slug}}">
+                                    {% if post.thumbnail %}
+                                        <img src="{{post.thumbnail}}" alt="{{post.title}}" class="img-fluid" width="100px">
+                                    {% else %}
+                                        <img src="/media/default/default-post.png" alt="{{post.title}}" class="img-fluid" width="100px">
+                                    {% endif %}
+                                </a>
+                            </div>
+                            <div class="col-md-8 text-center">
+                                {% comment %} <form id="titleRecentPostForm{{ post.id }}" action="/posts/{{ post.title|slugify }}" method="POST">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="post_id" value="{{ post.id }}">
+                                </form>
+                                <a href="javascript:void(0);" onclick="document.getElementById('titleRecentPostForm{{ post.id }}').submit();"> {% endcomment %}
+                                <a href="/posts/{{post.slug}}">
+                                    {{ post.title|slice:":20" }} ...
+                                </a>
+                            </div>
+                            
+                            <!--
+                            <div class="col-md-8 text-center">
+                                <form action="/posts/{{post.title|slugify}}" method=POST>
+                                    {% csrf_token %}
+                                    <input type="hidden" name="post_id" value={{post.id}}>
+                                    <button class="nav-item" type="submit">{{post.title|slice:":20"}} ...</button>
+                                </form>
+                                {% comment %} <a href="/posts/{{post.title|slugify}}">{{post.title|slice:":20"}} ...</a> {% endcomment %}
+                                a
+                            </div> -->
                         </div>
-                    </form>
-                <hr>
+                    {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row text-center">
+            <div>
+                {% if posts.has_previous %}
+                    <a href="?page={{posts.previous_page_number}}" class="btn btn-primary me-1">Previous</a>
+                {% endif %}
+                {% comment %} {{posts.number}}
+                {{posts.paginator.num_pages}} {% endcomment %}
+                {% if posts.has_next %}
+                    <a href="?page={{posts.next_page_number}}" class="btn btn-primary">Next</a>
+                {% endif %}
             </div>
         </div>
     </div>
-
 {% endblock body %}
