@@ -33,7 +33,11 @@ DEBUG = config('DEBUG')
 print(f'Value of Debug is: {DEBUG}')
 
 ALLOWED_HOSTS = config("HOSTS", default="").split(",")
-CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS").split(",")
+
+if DEBUG:
+    CSRF_TRUSTED_ORIGINS = ["http://localhost", "http://127.0.0.1"]
+else:
+    CSRF_TRUSTED_ORIGINS = config("CSRF_TRUSTED_ORIGINS", default="").split(",")
 
 
 # Application definition

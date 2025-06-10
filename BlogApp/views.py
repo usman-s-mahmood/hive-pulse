@@ -151,69 +151,87 @@ def edit_post(request, id):
     if not request.user.is_superuser or not request.user.is_staff:
         messages.warning(
             request,
-            message=f'You are not allowed to visit this area!',
+            message='You are not allowed to visit this area!',
             extra_tags='danger'
         )
         return redirect('/auth/dashboard')
+
     post_query = models.BlogPosts.objects.filter(id=id).first()
+
     if post_query is None:
         messages.warning(
             request,
-            message=f'Invalid Post ID! No post exists with this ID',
+            message='Invalid Post ID! No post exists with this ID',
             extra_tags='danger'
         )
         return redirect('/auth/dashboard')
+
     elif post_query.author.id != request.user.id or not request.user.is_superuser:
         messages.warning(
             request,
-            message=f'Invalid Operation! You can not the post of another user',
+            message='Invalid Operation! You cannot edit the post of another user',
             extra_tags='danger'
         )
         return redirect('/auth/dashboard')
+
     form = forms.AddPostForm(
         request.POST or None,
-        request.FILES,
+        request.FILES or None,
         instance=post_query
     )
+    # Preserve original thumbnail
+    print(post_query)
+    print(post_query.clean_fields)
+    original_thumbnail = post_query.thumbnail
+    print(f'preserved thumbnail is: {original_thumbnail}')
+
     if request.method == 'POST':
         if form.is_valid():
             form.instance.category = models.Category.objects.filter(
                 name=request.POST.get('category')
             ).first()
+
+            
+
             post = form.save(commit=False)
+
             if 'thumbnail_url' in request.FILES:
                 image = request.FILES['thumbnail_url']
-                # print(image)
-                temp_image_path = os.path.join(settings.MEDIA_ROOT, f'tempfiles/blog-thumbnail/{image.name}')
+                temp_image_path = os.path.join(
+                    settings.MEDIA_ROOT,
+                    f'tempfiles/blog-thumbnail/{image.name}'
+                )
                 os.makedirs(os.path.dirname(temp_image_path), exist_ok=True)
                 with open(temp_image_path, 'wb+') as temp_file:
                     for chunk in image.chunks():
                         temp_file.write(chunk)
+
                 upload_response = imagekit.upload_file(
-                    file=open(
-                        temp_image_path, 
-                        'rb'
-                    ),
+                    file=open(temp_image_path, 'rb'),
                     file_name=image.name,
                     options=UploadFileRequestOptions(
                         folder='/hivepulse/blog_thumbnails/'
                     )
                 )
                 post.thumbnail = upload_response.url
-                # print('reached if block')
+
                 if os.path.exists(temp_image_path):
                     os.remove(temp_image_path)
-            post.save() # it works!
-            # print('post saved!')
+            else:
+                # Restore existing thumbnail if no new one uploaded
+                post.thumbnail = original_thumbnail
+                print(f'Thumbnail of post is: {post.thumbnail}')
+            post.save()
+
             messages.success(
                 request,
-                message=f'You post has now been edited!',
+                message='Your post has now been edited!',
                 extra_tags='success'
             )
-            title_slug = models.BlogPosts.objects.filter(id=id).first()
-            title_slug = title_slug.slug
-            print(title_slug)
-            return redirect(f'/posts/{title_slug}') # -- /post/{title_slug}
+
+            title_slug = post.slug  # Already available from the updated object
+            return redirect(f'/posts/{title_slug}')
+
         else:
             messages.warning(
                 request,
@@ -227,10 +245,9 @@ def edit_post(request, id):
                     'form': form
                 }
             )
+
     else:
-        form = forms.AddPostForm(
-            instance=post_query
-        )
+        form = forms.AddPostForm(instance=post_query)
         return render(
             request,
             'BlogApp/edit-post.html',
@@ -240,7 +257,7 @@ def edit_post(request, id):
                 'edit_post': True
             }
         )
-        
+       
 @login_required(login_url='/auth/login')
 def delete_post(request, id):
     if not request.user.is_superuser or not request.user.is_staff:
