@@ -23,7 +23,7 @@ def login_user(request):
         messages.warning(
             request,
             message=f'You are already logged in!',
-            extra_tags='danger'
+            extra_tags='error'
         )
         return redirect('/')
     if request.method == 'POST':
@@ -50,13 +50,13 @@ def login_user(request):
                 messages.warning(
                     request,
                     message=f'Invalid Username or password!',
-                    extra_tags='danger'
+                    extra_tags='error'
                 )
         else:
             messages.warning(
                 request,
                 message=f'Your form has errors!\n{form.errors}',
-                extra_tags='danger'
+                extra_tags='error'
             )
     return render(
         request,
@@ -80,7 +80,7 @@ def logout_user(request):
         messages.warning(
             request,
             message=f'You have to login to visit this page',
-            extra_tags='danger'
+            extra_tags='error'
         )
         return redirect('/auth/login')
     
@@ -90,7 +90,7 @@ def register_user(request):
         messages.warning(
             request,
             message=f'You are already registered on this site!',
-            extra_tags='danger'
+            extra_tags='error'
         )
         return redirect('/auth/dashboard') 
     if request.method == 'POST':
@@ -101,7 +101,7 @@ def register_user(request):
                 messages.warning(
                     request,
                     message=f'This email is already registered with another account! Please try again with a different one',
-                    extra_tags='danger'
+                    extra_tags='error'
                 )
                 form.fields['email'].help_text = f'Change this email! It is associated with another account'
                 return render(
@@ -123,7 +123,7 @@ def register_user(request):
             messages.warning(
                 request,
                 message=f'Your form has errors!\n{form.errors}',
-                extra_tags='danger'
+                extra_tags='error'
             )
             return render(
                 request,
@@ -152,7 +152,7 @@ def edit_user(request):
                 messages.warning(
                     request,
                     message=f'Invalid Email! This email is associated with another account',
-                    extra_tags='danger'
+                    extra_tags='error'
                 )
                 return render(
                     request,
@@ -173,7 +173,7 @@ def edit_user(request):
             messages.warning(
                 request,
                 message=f'Your form has errors!\n{form.errors}',
-                extra_tags='danger'
+                extra_tags='error'
             )
             return render(
                 request,
@@ -212,7 +212,7 @@ def edit_password(request):
             messages.warning(
                 request,
                 message=f'Your form has errors!\n{form.errors}',
-                extra_tags='danger'
+                extra_tags='error'
             )
             return redirect('/auth/edit-password')
     return render(
@@ -232,7 +232,7 @@ def delete_user(request):
             messages.warning(
                 request,
                 message=f'Accounts with escalated permissions cannot be deleted!',
-                extra_tags='danger'
+                extra_tags='error'
             )
             return redirect('/auth/dashboard')
         if form.is_valid():
@@ -254,7 +254,7 @@ def delete_user(request):
                 messages.warning(
                     request,
                     message=f'Account deletion not possible due to incorrect password!',
-                    extra_tags='danger'
+                    extra_tags='error'
                 )
                 return redirect('/auth/delete-user')
     return render(
@@ -277,7 +277,7 @@ def create_profile(request):
         messages.warning(
             request,
             message=f'Your profile already exists!',
-            extra_tags='danger'
+            extra_tags='error'
         )
         return redirect('/auth/dashboard') 
     form = forms.ProfileForm(request.POST, request.FILES)
@@ -318,7 +318,7 @@ def create_profile(request):
             messages.warning(
                 request,
                 message=f'Your form has errors!\n{form.errors}',
-                extra_tags='danger'
+                extra_tags='error'
             )
             return render(
                 request,
@@ -347,7 +347,7 @@ def edit_profile(request):
         messages.warning(
             request,
             message=f'You have to create a profile in order to edit it!',
-            extra_tags='danger'
+            extra_tags='error'
         )
         return redirect('/auth/create-profile')
     form = forms.ProfileForm(
@@ -391,7 +391,7 @@ def edit_profile(request):
             messages.warning(
                 request,
                 message=f'Your form has errors!\n{form.errors}',
-                extra_tags='danger'
+                extra_tags='error'
             )
             return render(
                 request,
@@ -463,7 +463,7 @@ class CustomPasswordResetConfirmView(auth_views.PasswordResetConfirmView):
 #             messages.warning(
 #                 request,
 #                 message=f'You are using an email that is associated with another user!',
-#                 extra_tags='danger'
+#                 extra_tags='error'
 #             )
 #             return render(
 #                 request,
@@ -476,13 +476,13 @@ class CustomPasswordResetConfirmView(auth_views.PasswordResetConfirmView):
 #             messages.warning(
 #                 request,
 #                 message=f'You can not visit this page without any reason!',
-#                 extra_tags='danger'
+#                 extra_tags='error'
 #             )
 #             return redirect('/auth/dashboard')
 #     else:
 #         messages.warning(
 #             request,
 #             message=f'Invalid Operation! You can not visit this page',
-#             extra_tags='danger'
+#             extra_tags='error'
 #         )
 #         return redirect('/auth/dashboard')

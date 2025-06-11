@@ -30,8 +30,6 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG')
 
-print(f'Value of Debug is: {DEBUG}')
-
 ALLOWED_HOSTS = config("HOSTS", default="").split(",")
 
 CSRF_TRUSTED_ORIGINS = ["https://hive-pulse-engzc8begwbscgc5.westindia-01.azurewebsites.net"]
@@ -50,7 +48,8 @@ INSTALLED_APPS = [
     'BlogApp',
     'MoviesApp',
     'ckeditor',
-    'comment'
+    'comment',
+    'helpers'
 ]
 
 MIDDLEWARE = [

@@ -58,7 +58,7 @@
                 <div class="container d-flex align-items-center ">
                     <div class="d-flex align-items-center ">
                         <a href="#" class="navbar-brand" style="height: 125px;">
-                            <h1 class="text-primary mb-0"><i class="fas fa-bolt"></i> Hive Pulse</h1>
+                            <h3 class="text-primary mb-0"><i class="fas fa-bolt"></i> Hive Pulse</h3>
                             <!-- <img src="img/logo.png" alt="Logo"> -->
                         </a>
                     </div>
@@ -67,12 +67,12 @@
                             <div class="row gx-0 align-items-center">
                                 <div class="col-lg-8 text-center text-lg-center mb-lg-0">
                                     <div class="d-flex flex-wrap">
-                                        <div class="border-end border-primary pe-3">
+                                        {% comment %} <div class="border-end border-primary pe-3">
                                             <a href="#" class="text-muted small"><i class="fas fa-map-marker-alt text-primary me-2"></i>Find A Location</a>
                                         </div>
                                         <div class="ps-3">
                                             <a href="mailto:example@gmail.com" class="text-muted small"><i class="fas fa-envelope text-primary me-2"></i>example@gmail.com</a>
-                                        </div>
+                                        </div> {% endcomment %}
                                     </div>
                                 </div>
                                 <div class="col-lg-4 text-center text-lg-end">
@@ -112,7 +112,7 @@
                                     <div class="navbar-nav mx-0 mx-lg-auto bg-white">
                                         <a href="/" class="nav-item nav-link {% if index %}active{% endif %}">Home</a>
                                         <a href="/about" class="nav-item nav-link {% if about %}active{% endif %}">About</a>
-                                        <a href="/blog" class="nav-item nav-link">Blog</a>
+                                        <a href="/posts" class="nav-item nav-link">Blog</a>
                                         {% if user.is_authenticated %}
                                         <div class="nav-item dropdown">
                                             <a href="/auth/dashboard" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">User Options</a>
@@ -189,7 +189,7 @@
         </div>
         <!-- Modal Search End -->
         
-<div class="mt-5">
+<div class="">
     
     {% block body %}
     {% endblock body %}
@@ -203,10 +203,11 @@
             <div class="container py-5">
                 <div class="row g-5 mb-5 align-items-center">
                     <div class="col-lg-7">
-                        <div class="position-relative mx-auto">
-                            <input class="form-control w-100 py-3 ps-4 pe-5" type="text" placeholder="Email address to Subscribe">
-                            <button type="button" class="btn btn-primary position-absolute top-0 end-0 py-2 px-4 mt-2 me-2">Subscribe</button>
-                        </div>
+                        <form class="position-relative mx-auto" method=POST action="/newsletter">
+                            {% csrf_token %}
+                            <input class="form-control w-100 py-3 ps-4 pe-5" type="text" placeholder="Email address to Subscribe" name="email">
+                            <button type="submit" class="btn btn-primary position-absolute top-0 end-0 py-2 px-4 mt-2 me-2">Subscribe</button>
+                        </form>
                     </div>
                     <div class="col-lg-5">
                         <div class="d-flex align-items-center justify-content-center justify-content-lg-end">
@@ -218,35 +219,24 @@
                     </div>
                 </div>
                 <div class="row g-5">
-                    <div class="col-md-6 col-lg-6 col-xl-3">
+                    <div class="col-md-12 col-lg-4 col-xl-4">
                         <div class="footer-item d-flex flex-column">
                             <div class="footer-item">
                                 <h3 class="text-white mb-4"><i class="fas fa-bolt text-primary me-3"></i>Hive Pulse</h3>
-                                <p class="mb-3">Dolor amet sit justo amet elitr clita ipsum elitr est.Lorem ipsum dolor sit amet, consectetur adipiscing elit consectetur adipiscing elit.</p>
+                                <p class="mb-3">An independant platforms for entertainment lovers to get updates about there favorite movies and T.V. shows</p>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6 col-lg-6 col-xl-3">
+                    <div class="col-md-12 col-lg-4 col-xl-4">
                         <div class="footer-item d-flex flex-column">
                             <h4 class="text-white mb-4">Quick Links</h4>
-                            <a href="#"> Home</a>
-                            <a href="#"> About us</a>
-                            <a href="#"> Service</a>
-                            <a href="#"> Testimonial</a>
-                            <a href="#"> Contact Us</a>
+                            <a href="/"> Home</a>
+                            <a href="/about"> About us</a>
+                            <a href="/contact"> Contact Us</a>
+                            <a href="/posts"> Blog Posts</a>
                         </div>
                     </div>
-                    <div class="col-md-6 col-lg-6 col-xl-3">
-                        <div class="footer-item d-flex flex-column">
-                            <h4 class="text-white mb-4">Electricity service</h4>
-                            <a href="#"> Air Conditioning</a>
-                            <a href="#"> Electrical Panels</a>
-                            <a href="#"> Security System</a>
-                            <a href="#"> Indoor Lighting</a>
-                            <a href="#"> Electrical Services</a>
-                        </div>
-                    </div>
-                    <div class="col-md-6 col-lg-6 col-xl-3">
+                    <div class="col-md-12 col-lg-4 col-xl-4">
                         <div class="footer-item d-flex flex-column">
                             <h4 class="text-white mb-4">Contact Info</h4>
                             <a href="#"><i class="fa fa-map-marker-alt text-primary me-2"></i> 123 Street, New York, USA</a>
@@ -267,10 +257,10 @@
             <div class="container">
                 <div class="row g-4 align-items-center">
                     <div class="col-md-6 text-center text-md-start mb-md-0">
-                        <span class="text-body"><a href="#" class="border-bottom text-white"><i class="fas fa-copyright text-light me-2"></i>Hive Pulse</a>, &copy; All right reserved <span id="year-tag"></span>.</span>
+                        <span class="text-body"><a href="#" class="border-bottom text-white"><i class="fas fa-copyright text-light me-2"></i>Hive Pulse</a>, All right reserved <span id="year-tag"></span>.</span>
                     </div>
                     <div class="col-md-6 text-center text-md-end text-body">
-                        
+                        <span class="text-body"><a target="_blank" href="https://github.com/usman-s-mahmood/hive-pulse" class="border-bottom text-white">Developed By: Usman Shahid & Daniyal Khan</a></span>
                     </div>
                 </div>
             </div>

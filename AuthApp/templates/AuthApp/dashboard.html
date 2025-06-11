@@ -14,6 +14,7 @@
             </div>
         </div>
         <!-- Header End -->
+<br>
     <div class="container">
         <hr>
             <p class="fs-1 text-center"><strong class="text-secondary">Welcome to User Dashboard: {{user.username}}</strong></p>
@@ -101,7 +102,7 @@
                                     > {% endcomment %}
                                     <a href="/posts/{{post.slug}}">
                                         {% if post.thumbnail %}
-                                            <img src="{{post.thumbnail}}" alt="{{post.title}}" class="img-fluid" width="720px">
+                                            <img src="{{post.thumbnail}}/tr:w-720,h-360" alt="{{post.title}}" class="img-fluid">
                                         {% else %}
                                             <img src="/media/default/default-post.png" alt="{{post.title}}" class="img-fluid" width="720px">
                                         {% endif %}
@@ -219,5 +220,5 @@
             {% endif %}
         </div>
     </div>
-
+<br>
 {% endblock body %}

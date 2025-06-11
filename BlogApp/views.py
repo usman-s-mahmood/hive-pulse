@@ -14,17 +14,25 @@ import os
 from HivePulse.settings import imagekit
 from HivePulse import settings
 from django.core.mail import send_mail
+from helpers import TMDB_API
 
 # Create your views here.
 
 def index(request):
     services = models.Service.objects.all().order_by('-pk')
+    movies = TMDB_API.top_3_movies()
+    shows = TMDB_API.top_3_tv_shows()
+    blogs = models.BlogPosts.objects.order_by('-pk')[:3]
+    
     return render(
         request,
         'BlogApp/index.html',
         {
             'services': services,
-            'home': True
+            'home': True,
+            'feature_movies': movies,
+            'feature_shows': shows,
+            'blogs': blogs
         }
     )
     
@@ -35,7 +43,7 @@ def add_category(request):
         messages.warning(
             request,
             message=f'Invalid Operation! You are not allowed to visit this page',
-            extra_tags='danger'
+            extra_tags='error'
         )
         return redirect('/auth/dashboard')
     if request.method == 'POST':
@@ -56,7 +64,7 @@ def add_category(request):
             messages.warning(
                 request,
                 message=f'Your form has errors!\n{form.errors}',
-                extra_tags='danger'
+                extra_tags='error'
             )
             return render(
                 request,
@@ -80,7 +88,7 @@ def add_post(request):
         messages.warning(
             request,
             message=f'You are not allowed to visit this area!',
-            extra_tags='danger'
+            extra_tags='error'
         )
         return redirect('/auth/dashboard')
     form = forms.AddPostForm(
@@ -127,7 +135,7 @@ def add_post(request):
             messages.warning(
                 request,
                 message=f'Your form has errors!\n{form.errors}',
-                extra_tags='danger'
+                extra_tags='error'
             )
             return render(
                 request,
@@ -153,7 +161,7 @@ def edit_post(request, id):
         messages.warning(
             request,
             message='You are not allowed to visit this area!',
-            extra_tags='danger'
+            extra_tags='error'
         )
         return redirect('/auth/dashboard')
 
@@ -163,7 +171,7 @@ def edit_post(request, id):
         messages.warning(
             request,
             message='Invalid Post ID! No post exists with this ID',
-            extra_tags='danger'
+            extra_tags='error'
         )
         return redirect('/auth/dashboard')
 
@@ -171,7 +179,7 @@ def edit_post(request, id):
         messages.warning(
             request,
             message='Invalid Operation! You cannot edit the post of another user',
-            extra_tags='danger'
+            extra_tags='error'
         )
         return redirect('/auth/dashboard')
 
@@ -237,7 +245,7 @@ def edit_post(request, id):
             messages.warning(
                 request,
                 message=f'Your form has errors!\n{form.errors}',
-                extra_tags='danger'
+                extra_tags='error'
             )
             return render(
                 request,
@@ -265,7 +273,7 @@ def delete_post(request, id):
         messages.warning(
             request,
             message=f'You are not allowed to visit this area!',
-            extra_tags='danger'
+            extra_tags='error'
         )
         return redirect('/auth/dashboard')
     post_query = models.BlogPosts.objects.filter(id=id).first()
@@ -273,14 +281,14 @@ def delete_post(request, id):
         messages.warning(
             request,
             message=f'Invalid Post ID! No post exists with this ID',
-            extra_tags='danger'
+            extra_tags='error'
         )
         return redirect('/auth/dashboard')
     elif post_query.author.id != request.user.id or not request.user.is_superuser:
         messages.warning(
             request,
             message=f'Invalid Operation! You can not the post of another user',
-            extra_tags='danger'
+            extra_tags='error'
         )
         return redirect('/auth/dashboard')
     form = auth_forms.DeleteConfirmation(request.POST)
@@ -305,14 +313,14 @@ def delete_post(request, id):
                 messages.warning(
                     request,
                     message=f'Invalid Password! Try again',
-                    extra_tags='danger'
+                    extra_tags='error'
                 )
                 return redirect(f'/delete-post/{id}')
         else:
             messages.warning(
                 request,
                 message=f'You form has errors!\n{form.errors}',
-                extra_tags='danger'
+                extra_tags='error'
             )
             return redirect(f'/delete-post/{id}')
     return render(
@@ -360,7 +368,7 @@ def post_view(request, slug):
         messages.warning(
             request,
             message=f'Invalid Slug! No post exists with this slug',
-            extra_tags='danger'
+            extra_tags='error'
         )
         return redirect('/posts')
     # print(f'{post_query.author.first_name} - {post_query.author.last_name}')
@@ -381,7 +389,7 @@ def category_view(request, category):
         messages.warning(
             request,
             message=f'Invalid Category provided!',
-            extra_tags='danger'
+            extra_tags='error'
         )
         return redirect('/posts')
     post_query = models.BlogPosts.objects.filter(
@@ -436,7 +444,7 @@ def search(request):
     messages.warning(
         request,
         message=f'You forgot to search!',
-        extra_tags='danger'
+        extra_tags='error'
     )
     return redirect('/')
 
@@ -444,7 +452,7 @@ def search_redirect(request):
     messages.warning(
         request,
         message=f'You forgot to search!',
-        extra_tags='danger'
+        extra_tags='error'
     )
     return redirect('/')
 
@@ -545,7 +553,7 @@ def add_service(request):
         messages.warning(
             request,
             message=f'Invalid Operation! You are not allowed to visit this page',
-            extra_tags='danger'
+            extra_tags='error'
         )
         return redirect('/auth/dashboard')
     if request.method == 'POST':
@@ -565,7 +573,7 @@ def add_service(request):
             messages.warning(
                 request,
                 message=f'Your form has errors!\n{form.errors}',
-                extra_tags='danger'
+                extra_tags='error'
             )
             return render(
                 request,
@@ -593,12 +601,26 @@ def newsletter_view(request):
                 messages.warning(
                     request,
                     message=f'You have already subscribed to our newsletter',
-                    extra_tags='danger'
+                    extra_tags='error'
                 )
                 return redirect('/')
             else:
                 form.instance.email = email
                 form.save()
+                try:
+                    full_message = f"Dear User,\n\n" \
+                        f"Thank you for subscribing to our newsletter. We don't spam our users and always provide valuable insights and offers to our users. Have a nice day!\n" \
+                        f"Best Regards,\n\n" \
+                        f"IT Team, Hive Pulse"
+                    send_mail(
+                        subject=f'Newsletter Subscription at Hive Pulse',
+                        message=full_message,
+                        from_email=settings.EMAIL_HOST_USER,
+                        recipient_list=[email],
+                        fail_silently=False
+                    )
+                except Exception as error:
+                    pass
                 messages.success(
                     request,
                     message=f'Thank you for subscribing to our newsletter!',
@@ -609,7 +631,7 @@ def newsletter_view(request):
             messages.warning(
                 request,
                 message=f'Your form has errors!\n{form.errors}',
-                extra_tags='danger'
+                extra_tags='error'
             )
             return redirect('/')
     return redirect('/')
@@ -637,7 +659,7 @@ def quotation_view(request):
             messages.warning(
                 request,
                 message=f'Your form has errors!\n{form.errors}',
-                extra_tags='danger'
+                extra_tags='error'
             )
             return redirect('/')
     return redirect('/')
@@ -649,7 +671,7 @@ def like_post(request, post_id):
         messages.warning(
             request,
             message=f'Invalid URL! No post exists with this ID',
-            extra_tags='danger'
+            extra_tags='error'
         )
         return redirect('/posts')
     if post.likes.filter(id=request.user.id).exists():
@@ -677,7 +699,7 @@ def hide_post(request, post_id):
         messages.warning(
             request,
             message=f'You are not allowed in this area',
-            extra_tags='danger'
+            extra_tags='error'
         )
         return redirect('/auth/dashboard')
     post_query = models.BlogPosts.objects.filter(id=post_id).first()
@@ -685,7 +707,7 @@ def hide_post(request, post_id):
         messages.warning(
             request,
             message=f'Invalid Post ID! No relevant post found!',
-            extra_tags='danger'
+            extra_tags='error'
         )
         return redirect('/auth/dashboard')
 
@@ -702,7 +724,7 @@ def hide_post(request, post_id):
     messages.warning(
         request,
         message=f'Post is already hidden!',
-        extra_tags='danger'
+        extra_tags='error'
     )
     return redirect('/auth/dashboard')
 
@@ -713,7 +735,7 @@ def unhide_post(request, post_id):
         messages.warning(
             request,
             message=f'You are not allowed in this area',
-            extra_tags='danger'
+            extra_tags='error'
         )
         return redirect('/auth/dashboard')
     post_query = models.BlogPosts.objects.filter(id=post_id).first()
@@ -721,7 +743,7 @@ def unhide_post(request, post_id):
         messages.warning(
             request,
             message=f'Invalid Post ID! No relevant post found!',
-            extra_tags='danger'
+            extra_tags='error'
         )
         return redirect('/auth/dashboard')
 
@@ -738,6 +760,6 @@ def unhide_post(request, post_id):
     messages.warning(
         request,
         message=f'Post is already unhidden!',
-        extra_tags='danger'
+        extra_tags='error'
     )
     return redirect('/auth/dashboard')

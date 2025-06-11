@@ -11,6 +11,7 @@
         </ol>    
     </div>
 </div>
+<br>
 <!-- Header End -->
     <div class="container">
         <div class="row">
@@ -31,7 +32,7 @@
                         > {% endcomment %}
                         <a href="/posts/{{post.slug}}">
                         {% if post.thumbnail %}
-                            <img src="{{post.thumbnail}}" alt="{{post.title}}" class="img-fluid" width="720px">
+                            <img src="{{post.thumbnail}}/tr:w-720,h-360" alt="{{post.title}}" class="img-fluid" width="720px">
                         {% else %}
                             <img src="/media/default/default-post.png" alt="{{post.title}}" class="img-fluid" width="720px">
                         {% endif %}
@@ -122,4 +123,5 @@
             </div>
         </div>
     </div>
+    <br>
 {% endblock body %}
