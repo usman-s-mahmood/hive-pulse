@@ -11,7 +11,7 @@
                         <div class="row g-4 align-items-center">
                             <div class="col-lg-7 animated fadeInLeft">
                                 <div class="text-sm-center text-md-start">
-                                    <h4 class="text-white text-uppercase fw-bold mb-2">Discover Movies That Match Your Taste Instantly</h4>
+                                    <h4 class="text-white text-uppercase fw-bold mt-5">Discover Movies That Match Your Taste Instantly</h4>
                                     <h4 class="display-2 text-white mb-2">Your next favorite movie is just a pulse away</h4>
                                     <p class="mb-5 fs-5">Dive into a world of movies tailored to your taste — smarter recommendations, clearer ratings, and zero guesswork 
                                     </p>
@@ -33,7 +33,7 @@
                         <div class="row g-4 align-items-center">
                             <div class="col-lg-7 animated fadeInLeft">
                                 <div class="text-sm-center text-md-start">
-                                    <h4 class="text-white text-uppercase fw-bold mb-2">Discover Movies That Match Your Taste Instantly</h4>
+                                    <h4 class="text-white text-uppercase fw-bold mt-5">Discover Movies That Match Your Taste Instantly</h4>
                                     <h4 class="display-2 text-white mb-2">Your next favorite movie is just a pulse away</h4>
                                     <p class="mb-5 fs-5">Dive into a world of movies tailored to your taste — smarter recommendations, clearer ratings, and zero guesswork 
                                     </p>
@@ -158,12 +158,13 @@
                                 <div class="service-carousel owl-carousel">
                                     {% for movie in feature_movies %}
                                     <div class="service-item">
-                                        <img src="https://image.tmdb.org/t/p/w600_and_h900_bestv2/{{movie.poster_path}}" class="img-fluid w-100 h-25" alt="">
+                                        <img src="https://image.tmdb.org/t/p/w600_and_h900_bestv2{{movie.poster_path}}" class="img-fluid w-100 h-25" alt="">
                                         <div class="border border-top-0 p-4">
                                             <h4 class="mb-3">{{movie.title}}</h4>
                                             <p class="mb-4">{{movie.overview}}
                                             </p>
                                             <p>Released on: {{movie.release_date}} | rating: {{movie.vote_average}}⭐ out of 10</p>
+                                            <a href="/movie/detail/{{movie.id}}" target="_blank" class="btn btn-primary">Details</a>
                                         </div>
                                     </div>
                                     {% endfor %}

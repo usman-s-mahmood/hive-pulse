@@ -1,0 +1,115 @@
+{% extends "BlogApp/base.html" %}
+
+{% block body %}
+<!-- Header Start -->
+<div class="container-fluid bg-breadcrumb">
+    <div class="container text-center py-5" style="max-width: 900px;">
+        <h4 class="text-white display-4 mb-4 wow fadeInDown" data-wow-delay="0.1s">Movie Detail</h4>
+        <ol class="breadcrumb d-flex justify-content-center mb-0 wow fadeInDown" data-wow-delay="0.3s">
+            <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item text-primary">Movie/Detail</li>
+            <li class="breadcrumb-item active text-primary">Movie Detail</li>
+        </ol>    
+    </div>
+</div>
+<!-- Header End -->
+<br>
+    <div class="container">
+        <div class="row">
+            {% if movie is none %}
+                <div class="col-md-8 mb-5">
+                    <p class="fs-3">No Movie Found with ID: <strong>{{movie_id}}</strong></p>
+                </div>
+            {% else %}
+                <div class="col-md-8 mb-5">
+                    <div class="row p-5">
+                        {% comment %} {% if post.thumbnail %}
+                            <img src="{{post.thumbnail}}" alt="{{post.title}}" class="img-fluid" width="720px">
+                        {% else %}
+                            <img src="/media/default/default-post.png" alt="{{post.title}}" class="img-fluid" width="720px">
+                        {% endif %} {% endcomment %}
+                        <img src="https://image.tmdb.org/t/p/w600_and_h900_bestv2/{{movie.poster_path}}" alt="poster" class="img-fluid">
+                    </div>
+                    <div class="row">
+                        <p class="fs-1 text-center text-dark">Title: <strong>{{movie.title}}</strong></p>
+                        <hr>
+                        <p class="text-dark">Status: <strong>{{movie.status}}</strong></p>
+                        <hr>
+                        <p class="text-dark">Tagline: <strong>{{movie.tagline}}</strong></p>
+                        <p class="mb-4 text-dark">{{movie.overview}}
+                        </p>
+                        <p class="text-dark">Released on: {{movie.release_date}} | rating: {{movie.vote_average}}⭐ out of 10</p>
+                        <hr>
+                        <p class="text-dark">Budget: ${{movie.budget}} | Revenue: ${{movie.revenue}}</p>
+                        <p class="text-dark">Production Country(s): {% for con in movie.production_countries %} {{con.name}} {% endfor %}</p>
+                        <p class="text-dark">Available Languages:{% for lang in movie.spoken_languages %} {{lang.name}} {% endfor %}</p>
+                        <p class="text-dark">Production Company(s): {% for com in movie.production_companies %} {{com.name}} |  {% endfor %}</p>
+                        <p class="text-dark">Homepage: <a href="{{movie.homepage}}" target="_blank">{{movie.homepage}}</a></p>
+                    </div>
+                    <div>
+                        
+                    </div>
+                    
+                </div>
+            {% endif %}
+            <br>
+            <div class="col-md-4">
+                <div class="row">
+                        <form class="d-flex" role="search" method=POST action="/search">
+                            {% csrf_token %}
+                            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="search">
+                            <button class="btn btn-outline-primary" type="submit">Search</button>
+                        </form>
+                </div>
+                <br>
+                <div class="row">
+                    <hr>
+                        <p class="fs-4 text-center"><strong>Categories</strong></p>
+                    <hr>
+                    {% for value in categories %}
+                        <a href="/category/{{value|slugify}}">
+                            <p class="fs-6 text-center"><strong class="text-secondary">{{value}}</strong></p>
+                        </a>
+                    {% endfor %}
+                </div>
+                <div class="row d-flex">
+                    <hr>
+                        <p class="fs-3 text-center"><strong>Recent Posts</strong></p>
+                    <hr>
+                    <div class="row d-flex">
+                    {% for post in recents %}
+                        <div class="row mt-3">
+                            <div class="col-md-4 text-center">
+                                {% comment %} <a href="/posts/{{post.title|slugify}}"> {% endcomment %}
+                                {% comment %} <form id="imageRecentPosts{{post.id}}" action="/posts/{{post.title|slugify}}" method=POST>
+                                    <input type="hidden" name="post_id" value={{post.id}}>
+                                </form>
+                                <a 
+                                    href="javascript:void(0);"
+                                    onclick="document.getElementById('imageRecentPosts{{post.id}}').submit();"
+                                > {% endcomment %}
+                                <a href="/posts/{{post.slug}}">
+                                    {% if post.thumbnail %}
+                                        <img src="{{post.thumbnail}}" alt="{{post.title}}" class="img-fluid" width="100px">
+                                    {% else %}
+                                        <img src="/media/default/default-post.png" alt="{{post.title}}" class="img-fluid" width="100px">
+                                    {% endif %}
+                                </a>
+                            </div>
+                            <div class="col-md-8 text-center">
+                                {% comment %} <a 
+                                    href="javascript:void(0);"
+                                    onclick="document.getElementById('imageRecentPosts{{post.id}}').submit();"
+                                > {% endcomment %}
+                                <a href="/posts/{{post.slug}}">
+                                {{post.title|slice:":20"}} ...</a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<br>
+{% endblock body %}

@@ -323,9 +323,35 @@ def top_3_tv_shows():
         return  sample_shows
 
 
+import requests
+from decouple import config
+
+def get_movie_details(movie_id):
+
+    url = f"https://api.themoviedb.org/3/movie/{movie_id}"
+    headers = {
+        "accept": "application/json",
+        "Authorization": f"Bearer {config('TMDB')}"
+    }
+    
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status() 
+        movie_data = response.json()
+        return movie_data
+    
+    except Exception as e:
+        print(f"WARNING! TMDB API NOT WORKING for movie ID {movie_id}. Error: {e}")        
+        return None
+
+
 if __name__ == '__main__':
     print("Random Top 3 Movies:\n")
     top_3_movies()
 
     print("\nRandom Top 3 TV Shows:\n")
     top_3_tv_shows()
+    print(f'===========================================================================')
+    print(f'Details for Movie ID: {870028}')
+    print(f'===========================================================================')
+    print(get_movie_details(870028))

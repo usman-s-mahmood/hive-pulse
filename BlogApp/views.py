@@ -349,7 +349,7 @@ def blog_posts(request):
         {
             'posts': posts,
             'recents': models.BlogPosts.objects.filter(hide_post=False).all().order_by('-pk')[0:3],
-            'categories': return_categories,
+            'categories': return_categories(),
             'blog': True
         }
     )
@@ -379,7 +379,7 @@ def post_view(request, slug):
         {
             'post': post_query,
             'recents': models.BlogPosts.objects.filter(hide_post=False).all().order_by('-pk')[0:3],
-            'categories': return_categories
+            'categories': return_categories()
         }
     )
     
@@ -408,7 +408,7 @@ def category_view(request, category):
         {
             'posts': post_query,
             'recents': models.BlogPosts.objects.filter(hide_post=False).all().order_by('-pk')[0:3],
-            'categories': return_categories,
+            'categories': return_categories(),
             'category': category,
             'postsNone': postsNone
         }
@@ -432,7 +432,7 @@ def search_results(request, query):
             'posts': post_query,
             'post_check': post_check,
             'recents': models.BlogPosts.objects.filter(hide_post=False).all().order_by('-pk')[0:3],
-            'categories': return_categories,
+            'categories': return_categories(),
             'query': query
         }
     )
@@ -609,7 +609,7 @@ def newsletter_view(request):
                 form.save()
                 try:
                     full_message = f"Dear User,\n\n" \
-                        f"Thank you for subscribing to our newsletter. We don't spam our users and always provide valuable insights and offers to our users. Have a nice day!\n" \
+                        f"Thank you for subscribing to our newsletter. We always provide valuable insights and offers to our users. Have a nice day!\n" \
                         f"Best Regards,\n\n" \
                         f"IT Team, Hive Pulse"
                     send_mail(
