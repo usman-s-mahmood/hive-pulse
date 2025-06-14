@@ -323,9 +323,6 @@ def top_3_tv_shows():
         return  sample_shows
 
 
-import requests
-from decouple import config
-
 def get_movie_details(movie_id):
 
     url = f"https://api.themoviedb.org/3/movie/{movie_id}"
@@ -344,14 +341,180 @@ def get_movie_details(movie_id):
         print(f"WARNING! TMDB API NOT WORKING for movie ID {movie_id}. Error: {e}")        
         return None
 
+def get_tv_show_details(tv_id):
+    url = f"https://api.themoviedb.org/3/tv/{tv_id}"
+    headers = {
+        "accept": "application/json",
+        "Authorization": f"Bearer {config('TMDB')}"
+    }
+
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        tv_data = response.json()
+        return tv_data
+
+    except Exception as e:
+        print(f"WARNING! TMDB API NOT WORKING for TV ID {tv_id}. Error: {e}")
+        return None
+
+
+def search_movies_by_title(title, page=1):
+    url = f"https://api.themoviedb.org/3/search/movie?query={title}&include_adult=false&language=en-US&page={page}"
+
+    headers = {
+        "accept": "application/json",
+        "Authorization": f"Bearer {config('TMDB')}"
+    }
+
+    try:
+        response = requests.get(url, headers=headers)
+        data = response.json()
+
+        results = data.get('results', [])
+        total_results = data.get('total_results', 0)
+        total_pages = data.get('total_pages', 1)
+
+        for i, movie in enumerate(results):
+            print(f"Movie {i+1} Title: {movie.get('original_title')}")
+            print(f"\tOverview: {movie.get('overview')}")
+            print(f"\tRating: {movie.get('vote_average')} ⭐")
+            print(f"\tRelease Date: {movie.get('release_date')}\n")
+
+        return {
+            "results": results,
+            "page": page,
+            "total_pages": total_pages,
+            "total_results": total_results
+        }
+
+    except Exception as e:
+        print(f"ERROR: Failed to search movies by title. Reason: {e}")
+        return {
+            "results": [],
+            "page": page,
+            "total_pages": 0,
+            "total_results": 0
+        }
+
+
+def search_tv_shows_by_title(title, page=1):
+    url = f"https://api.themoviedb.org/3/search/tv?query={title}&include_adult=false&language=en-US&page={page}"
+
+    headers = {
+        "accept": "application/json",
+        "Authorization": f"Bearer {config('TMDB')}"
+    }
+
+    try:
+        response = requests.get(url, headers=headers)
+        data = response.json()
+
+        results = data.get('results', [])
+        total_results = data.get('total_results', 0)
+        total_pages = data.get('total_pages', 1)
+
+        for i, show in enumerate(results):
+            print(f"TV Show {i+1} Title: {show.get('original_name')}")
+            print(f"\tOverview: {show.get('overview')}")
+            print(f"\tRating: {show.get('vote_average')} ⭐")
+            print(f"\tFirst Air Date: {show.get('first_air_date')}\n")
+
+        return {
+            "results": results,
+            "page": page,
+            "total_pages": total_pages,
+            "total_results": total_results
+        }
+
+    except Exception as e:
+        print(f"ERROR: Failed to search TV shows. Reason: {e}")
+        return {
+            "results": [],
+            "page": page,
+            "total_pages": 0,
+            "total_results": 0
+        }
+
+
+def get_movie_cast(movie_id):
+    url = f"https://api.themoviedb.org/3/movie/{movie_id}/credits"
+
+    headers = {
+        "accept": "application/json",
+        "Authorization": f"Bearer {config('TMDB')}"
+    }
+
+    try:
+        response = requests.get(url, headers=headers)
+        data = response.json()
+
+        cast = data.get("cast", [])
+        crew = data.get("crew", [])
+
+        for i, member in enumerate(cast[:10]):  # limit to first 10 cast members
+            print(f"{i+1}. {member.get('name')} as {member.get('character')}")
+
+        return {
+            "cast": cast,
+            # "crew": crew
+        }
+
+    except Exception as e:
+        print(f"ERROR: Failed to fetch cast. Reason: {e}")
+        return {
+            "cast": [],
+            "crew": []
+        }
+
+
+def get_tv_cast(tv_id):
+    url = f"https://api.themoviedb.org/3/tv/{tv_id}/credits"
+
+    headers = {
+        "accept": "application/json",
+        "Authorization": f"Bearer {config('TMDB')}"
+    }
+
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+
+        cast = data.get("cast", [])
+        crew = data.get("crew", [])
+
+        for i, member in enumerate(cast[:10]):  # limit to first 10 cast members
+            print(f"{i+1}. {member.get('name')} as {member.get('character')}")
+
+        return {
+            "cast": cast,
+            # "crew": crew  # Uncomment if needed
+        }
+
+    except Exception as e:
+        print(f"ERROR: Failed to fetch TV cast. Reason: {e}")
+        return {
+            "cast": [],
+            "crew": []
+        }
+
 
 if __name__ == '__main__':
-    print("Random Top 3 Movies:\n")
-    top_3_movies()
+    # print("Random Top 3 Movies:\n")
+    # top_3_movies()
 
-    print("\nRandom Top 3 TV Shows:\n")
-    top_3_tv_shows()
+    # print("\nRandom Top 3 TV Shows:\n")
+    # top_3_tv_shows()
     print(f'===========================================================================')
-    print(f'Details for Movie ID: {870028}')
+    # print(f'Details for Movie ID: {870028}')
     print(f'===========================================================================')
-    print(get_movie_details(870028))
+    # print(get_movie_details(870028))
+    
+    
+    # print(f'{search_movies_by_title('inception')}')
+    print(f'===========================================================================')
+    # print(f'{get_tv_show_details(1399)}')
+    print(f'{get_tv_cast(1399)}')
+    # print(f'{search_movies_by_title('inception', page=2)}')
+    # print(f'{search_movies_by_title('inception', page=3)}')

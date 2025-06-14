@@ -4,11 +4,11 @@
 <!-- Header Start -->
 <div class="container-fluid bg-breadcrumb">
     <div class="container text-center py-5" style="max-width: 900px;">
-        <h4 class="text-white display-4 mb-4 wow fadeInDown" data-wow-delay="0.1s">Movie Detail</h4>
+        <h4 class="text-white display-4 mb-4 wow fadeInDown" data-wow-delay="0.1s">Show Detail</h4>
         <ol class="breadcrumb d-flex justify-content-center mb-0 wow fadeInDown" data-wow-delay="0.3s">
             <li class="breadcrumb-item"><a href="/">Home</a></li>
-            <li class="breadcrumb-item text-primary">Movie/Detail</li>
-            <li class="breadcrumb-item active text-primary">Movie Detail</li>
+            <li class="breadcrumb-item text-primary">Movie/Detail/TV</li>
+            <li class="breadcrumb-item active text-primary">Show Detail</li>
         </ol>    
     </div>
 </div>
@@ -16,9 +16,9 @@
 <br>
     <div class="container">
         <div class="row">
-            {% if movie is none %}
+            {% if show is none %}
                 <div class="col-md-8 mb-5">
-                    <p class="fs-3">No Movie Found with ID: <strong>{{movie_id}}</strong></p>
+                    <p class="fs-3">No TV Show Found with ID: <strong>{{show_id}}</strong></p>
                 </div>
             {% else %}
                 <div class="col-md-8 mb-5">
@@ -28,23 +28,23 @@
                         {% else %}
                             <img src="/media/default/default-post.png" alt="{{post.title}}" class="img-fluid" width="720px">
                         {% endif %} {% endcomment %}
-                        <img src="https://image.tmdb.org/t/p/w600_and_h900_bestv2/{{movie.poster_path}}" alt="poster" class="img-fluid">
+                        <img src="https://image.tmdb.org/t/p/w600_and_h900_bestv2/{{show.poster_path}}" alt="poster" class="img-fluid">
                     </div>
                     <div class="row">
-                        <p class="fs-1 text-center text-dark">Title: <strong>{{movie.title}}</strong></p>
+                        <p class="fs-1 text-center text-dark">Title: <strong>{{show.original_name}}</strong></p>
                         <hr>
-                        <p class="text-dark">Status: <strong>{{movie.status}}</strong></p>
+                        <p class="text-dark">Aired On: <strong>{{show.first_air_date}}</strong> | Last Air Date: <strong>{{show.last_air_date}}</strong></p>
+                        <p class="text-dark">No. of Seasons: <strong>{{show.number_of_seasons}}</strong> | No. of Episodes: <strong>{{show.number_of_episodes}}</strong></p>
                         <hr>
-                        <p class="text-dark">Tagline: <strong>{{movie.tagline}}</strong></p>
-                        <p class="mb-4 text-dark">{{movie.overview}}
+                        <p class="text-dark">Tagline: <strong>{{show.tagline}}</strong></p>
+                        <p class="mb-4 text-dark">{{show.overview}}
                         </p>
-                        <p class="text-dark">Released on: {{movie.release_date}} | rating: {{movie.vote_average}}⭐ out of 10</p>
+                        <p class="text-dark">Status: {{show.status}} | Rating: {{show.vote_average}}⭐ out of 10</p>
                         <hr>
-                        <p class="text-dark">Budget: ${{movie.budget}} | Revenue: ${{movie.revenue}}</p>
-                        <p class="text-dark">Production Country(s): {% for con in movie.production_countries %} {{con.name}} | {% endfor %}</p>
-                        <p class="text-dark">Available Languages:{% for lang in movie.spoken_languages %} {{lang.name}} |  {% endfor %}</p>
-                        <p class="text-dark">Production Company(s): {% for com in movie.production_companies %} {{com.name}} |  {% endfor %}</p>
-                        <p class="text-dark">Homepage: <a href="{{movie.homepage}}" target="_blank">{{movie.homepage}}</a></p>
+                        <p class="text-dark">Production Country(s): {% for con in show.production_countries %} {{con.name}} | {% endfor %}</p>
+                        <p class="text-dark">Available Languages:{% for lang in show.spoken_languages %} {{lang.name}} | {% endfor %}</p>
+                        <p class="text-dark">Production Company(s): {% for com in show.production_companies %} {{com.name}} |  {% endfor %}</p>
+                        <p class="text-dark">Homepage: <a href="{{show.homepage}}" target="_blank">{{show.homepage}}</a></p>
                     </div>
                     <div>
                         <hr>
