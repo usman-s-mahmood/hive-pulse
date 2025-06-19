@@ -88,6 +88,9 @@ This project relies on several environment variables to run correctly. Here’s 
 SECRET_KEY="your-django-secret-key"
 DEBUG=True
 
+HOSTS=""
+CSRF_TRUSTED_ORIGINS=""
+
 DB_NAME="your-db-name"
 DB_USER="your-db-user"
 DB_PASSWORD="your-db-password"
