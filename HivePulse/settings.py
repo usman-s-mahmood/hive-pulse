@@ -195,7 +195,7 @@ CKEDITOR_CONFIGS = {
     },
 }
 
-LOGIN_URL = 'login_page'
+LOGIN_URL = '/auth/login'
 LOGOUT_REDIRECT_URL =  '/auth/login'
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'

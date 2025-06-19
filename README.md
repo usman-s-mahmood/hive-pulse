@@ -1,6 +1,9 @@
 
 # Hive‑Pulse 🎬🧠📰
 
+[![Live Site](https://img.shields.io/badge/Live%20Demo-Hive%20Pulse-brightgreen)](https://hive-pulse-engzc8begwbscgc5.westindia-01.azurewebsites.net/)
+
+
 **Hive‑Pulse** is a full-stack Django web application that combines an intelligent **movie clustering engine**, a **custom CMS-powered blog**, and a **robust user authentication system** — all built from scratch.
 
 It allows users to search for **movies and TV shows** via the TMDB API, like content they enjoy, and get clustered insights using **KMeans or KNN** machine learning algorithms. It also includes a feature-rich blog section and a secure, production-ready authentication workflow.
@@ -59,6 +62,7 @@ HIVE-PULSE/
 ├── gunicorn_config.py           # Deployment config
 ├── startup.sh                   # Startup script
 ├── manage.py
+├── tmdb_5000_movies.csv
 └── README.md
 ```
 
