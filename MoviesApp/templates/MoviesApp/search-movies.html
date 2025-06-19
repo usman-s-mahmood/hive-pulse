@@ -32,7 +32,7 @@
                             <a href="/movie/detail/{{movie.id}}">
                                 <div class="card">
                                     {% if movie.poster_path is none %}
-                                        <img src="https://ik.imagekit.io/hivepulse/hivepulse/default/default-user.jpg" alt="{{movie.original_title}}" class="img-fluid">
+                                        <img src="https://ik.imagekit.io/hivepulse/hivepulse/default/default-post.png" alt="{{movie.original_title}}" class="img-fluid">
                                     {% else %}
                                         <img src="https://media.themoviedb.org/t/p/w220_and_h330_face{{movie.poster_path}}" alt="{{movie.original_title}}" class="img-fluid">
                                     {% endif %}
@@ -113,7 +113,7 @@
                         </li>
                     {% else %}
                         <li class="page-item disabled">
-                            <span class="page-link">Previous -</span>
+                            <span class="page-link">Previous</span>
                         </li>
                     {% endif %}
                         
@@ -124,7 +124,7 @@
                         </li>
                     {% else %}
                         <li class="page-item disabled">
-                            <span class="page-link">Next -</span>
+                            <span class="page-link">Next</span>
                         </li>
                     {% endif %}
                     

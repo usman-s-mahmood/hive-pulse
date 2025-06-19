@@ -26,7 +26,8 @@ urlpatterns = [
     path('', include('BlogApp.urls'), name='blog-urls'),
     path('auth/', include('AuthApp.urls'), name='auth-urls'),
     path('comment/', include('comment.urls')),
-    path('movie/', include('MoviesApp.urls'), name='movie-urls')
+    path('movie/', include('MoviesApp.urls'), name='movie-urls'),
+    path("contact", blog_views.contact_view, name="contact-redirect"),
 ] 
 
 if settings.DEBUG:
