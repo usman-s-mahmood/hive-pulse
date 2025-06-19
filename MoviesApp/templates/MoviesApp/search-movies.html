@@ -4,9 +4,10 @@
 <!-- Header Start -->
 <div class="container-fluid bg-breadcrumb">
     <div class="container text-center py-5" style="max-width: 900px;">
-        <h4 class="text-white display-4 mb-4 wow fadeInDown" data-wow-delay="0.1s">Search: {{query}}</h4>
+        <h4 class="text-white display-4 mb-4 wow fadeInDown" data-wow-delay="0.1s">Movie Search: {{query}}</h4>
         <ol class="breadcrumb d-flex justify-content-center mb-0 wow fadeInDown" data-wow-delay="0.3s">
             <li class="breadcrumb-item"><a href="/">Home</a></li>
+            <li class="breadcrumb-item text-primary">Movies</li>
             <li class="breadcrumb-item active text-primary">Search Results</li>
         </ol>    
     </div>
@@ -16,39 +17,33 @@
     <div class="container">
         <div class="row">
             <div class="col-md-8 mb-5">
-                {% if post_check == False %}
-                    <p class="fs-1 text-center"><strong>No posts found for this query: {{query}}</strong></p>
+                {% if page > total_pages and not results.results%}
+                    <p class="fs-1 text-center"><strong>You are lost, Page is out range!</strong></p>
                 {% endif %}
-                {% for post in posts %}
-                    <div class="row">
-                        {% comment %} <form action="/posts/{{post.title|slugify}}" id="imageMainPost{{post.id}}" method=POST>
-                            {% csrf_token %}
-                            <input type="hidden" name="post_id" value={{post.id}}>
-                        </form>
-                        <a 
-                            href="javascript:void(0)"
-                            onclick="document.getElementById('imageMainPost{{post.id}}').submit();"
-                        > {% endcomment %}
-                        <a href="/posts/{{post.slug}}">
-                        {% if post.thumbnail %}
-                            <img src="{{post.thumbnail}}/tr:w-720,h-360" alt="{{post.title}}" class="img-fluid" width="720px">
-                        {% else %}
-                            <img src="https://ik.imagekit.io/hivepulse/hivepulse/default/default-post.png" alt="{{post.title}}" class="img-fluid" width="720px">
-                        {% endif %}
-                        </a>
-                    </div>
-                    <div class="row">
-                        {% comment %} <a 
-                            href="javascript:void(0)"
-                            onclick="document.getElementById('imageMainPost{{post.id}}').submit();"
-                        > {% endcomment %}
-                        <a href="/posts/{{post.slug}}">
-                            <p class="fs-3"><strong class="text-dark">{{post.title}}</strong></p>
-                        </a>
-                        <p class="fs-6"><strong class="text-secondary">{{post.tagline|slice:":20"}} ...</strong></p>
-                    </div>
-                    <br>
-                {% endfor %}
+                {% if results.results %}
+                    <p class="fs-4 text-center"><strong>{{ total_results }} found for this query: {{ query }}</strong></p>
+                {% else %}
+                    <p class="fs-1 text-center"><strong>No posts found for this query: {{ query }}</strong></p>
+                {% endif %}
+
+                <div class="row">
+                    {% for movie in results.results %}
+                        <div class="col-4">
+                            <a href="/movie/detail/{{movie.id}}">
+                                <div class="card">
+                                    {% if movie.poster_path is none %}
+                                        <img src="https://ik.imagekit.io/hivepulse/hivepulse/default/default-user.jpg" alt="{{movie.original_title}}" class="img-fluid">
+                                    {% else %}
+                                        <img src="https://media.themoviedb.org/t/p/w220_and_h330_face{{movie.poster_path}}" alt="{{movie.original_title}}" class="img-fluid">
+                                    {% endif %}
+                                    <div class="card-body">
+                                        <p class="text-dark"><strong>{{movie.original_title}}</strong></p>
+                                    </div>
+                                </div>      
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
             </div>
             <div class="col-md-4">
                 <div class="row">
@@ -108,16 +103,36 @@
             </div>
         </div>
         <div class="row text-center">
-            <div>
-                {% if posts.has_previous %}
-                    <a href="?page={{posts.previous_page_number}}" class="btn btn-primary me-1">Previous</a>
-                {% endif %}
-                {% comment %} {{posts.number}}
-                {{posts.paginator.num_pages}} {% endcomment %}
-                {% if posts.has_next %}
-                    <a href="?page={{posts.next_page_number}}" class="btn btn-primary">Next</a>
-                {% endif %}
+            <div class="pagination d-flex justify-content-center mt-4">
+                <ul class="pagination">
+            
+                    {# Previous Button #}
+                    {% if current_page > 1 %}
+                        <li class="page-item">
+                            <a class="page-link" href="/movie/search?search={{ query }}&page={{ results.page|add:"-1" }}">Previous</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">Previous -</span>
+                        </li>
+                    {% endif %}
+                        
+                    {# Next Button #}
+                    {% if current_page < total_pages %}
+                        <li class="page-item">
+                            <a class="page-link" href="/movie/search?search={{ query }}&page={{ results.page|add:"1" }}">Next</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">Next -</span>
+                        </li>
+                    {% endif %}
+                    
+                </ul>
             </div>
+            
+            
+            
         </div>
     </div>
 <br>

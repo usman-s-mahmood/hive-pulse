@@ -26,7 +26,7 @@
                         {% comment %} {% if post.thumbnail %}
                             <img src="{{post.thumbnail}}" alt="{{post.title}}" class="img-fluid" width="720px">
                         {% else %}
-                            <img src="/media/default/default-post.png" alt="{{post.title}}" class="img-fluid" width="720px">
+                            <img src="https://ik.imagekit.io/hivepulse/hivepulse/default/default-post.png" alt="{{post.title}}" class="img-fluid" width="720px">
                         {% endif %} {% endcomment %}
                         <img src="https://image.tmdb.org/t/p/w600_and_h900_bestv2/{{show.poster_path}}" alt="poster" class="img-fluid">
                     </div>
@@ -58,7 +58,7 @@
                                     <div class="col-4">
                                         <div class="card">
                                             {% if mem.profile_path is none %}
-                                                <img src="/media/default/default-user.jpg" alt="{{mem.original_name}}" class="img-fluid">
+                                                <img src="https://ik.imagekit.io/hivepulse/hivepulse/default/default-user.jpg" alt="{{mem.original_name}}" class="img-fluid">
                                             {% else %}
                                                 <img src="https://media.themoviedb.org/t/p/w138_and_h175_face/{{mem.profile_path}}" alt="{{mem.original_name}}" class="img-fluid">
                                             {% endif %}
@@ -116,7 +116,7 @@
                                     {% if post.thumbnail %}
                                         <img src="{{post.thumbnail}}" alt="{{post.title}}" class="img-fluid" width="100px">
                                     {% else %}
-                                        <img src="/media/default/default-post.png" alt="{{post.title}}" class="img-fluid" width="100px">
+                                        <img src="https://ik.imagekit.io/hivepulse/hivepulse/default/default-post.png" alt="{{post.title}}" class="img-fluid" width="100px">
                                     {% endif %}
                                 </a>
                             </div>

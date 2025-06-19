@@ -35,3 +35,28 @@ def show_details(request, show_id):
             'cast': cast['cast']
         }
     )
+    
+def search_movies(request):
+    search = request.GET.get('search')
+    page = int(request.GET.get('page'))
+    results = TMDB_API.search_movies_by_title(
+        title=search,
+        page=page
+    )
+    print(results)
+    return render(
+        request,
+        'MoviesApp/search-movies.html',
+        {
+            'recents': blog_models.BlogPosts.objects.filter(hide_post=False).all().order_by('-pk')[0:3],
+            'categories': blog_views.return_categories(),
+            'results': results,
+            'query': search,
+            'total_results': results['total_results'],
+            'total_pages': results['total_pages'],
+            'current_page': page
+        }
+    )
+    
+    
+    

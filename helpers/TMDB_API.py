@@ -360,7 +360,7 @@ def get_tv_show_details(tv_id):
 
 
 def search_movies_by_title(title, page=1):
-    url = f"https://api.themoviedb.org/3/search/movie?query={title}&include_adult=false&language=en-US&page={page}"
+    url = f"https://api.themoviedb.org/3/search/movie?query={title}&include_adult=false&language=en-US&with_original_language=en&with_origin_country=US|GB|CA|AU|IE|DE|FR|IT|NL|SE&page={page}"
 
     headers = {
         "accept": "application/json",
@@ -374,13 +374,13 @@ def search_movies_by_title(title, page=1):
         results = data.get('results', [])
         total_results = data.get('total_results', 0)
         total_pages = data.get('total_pages', 1)
-
+        
         for i, movie in enumerate(results):
             print(f"Movie {i+1} Title: {movie.get('original_title')}")
             print(f"\tOverview: {movie.get('overview')}")
             print(f"\tRating: {movie.get('vote_average')} ⭐")
             print(f"\tRelease Date: {movie.get('release_date')}\n")
-
+        print(results)
         return {
             "results": results,
             "page": page,
@@ -498,23 +498,89 @@ def get_tv_cast(tv_id):
             "cast": [],
             "crew": []
         }
+        
+def get_popular_movies(page=1):
+    url = f"https://api.themoviedb.org/3/movie/popular?language=en-US&page={page}"
+
+    headers = {
+        "accept": "application/json",
+        "Authorization": f"Bearer {config('TMDB')}"
+    }
+
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+
+        results = data.get('results', [])
+        total_pages = data.get('total_pages', 1)
+        total_results = data.get('total_results', 0)
+
+        # Just printing movie titles for visual confirmation
+        for i, movie in enumerate(results, start=1):
+            print(f"{i}. {movie.get('title')} ({movie.get('release_date')})")
+
+        return {
+            "results": results,
+            "page": page,
+            "total_pages": total_pages,
+            "total_results": total_results
+        }
+
+    except Exception as e:
+        print(f"ERROR: Failed to fetch popular movies. Reason: {e}")
+        return {
+            "results": [],
+            "page": page,
+            "total_pages": 0,
+            "total_results": 0
+        }
+        
+def get_popular_shows(page=1):
+    url = f"https://api.themoviedb.org/3/tv/popular?language=en-US&page={page}"
+
+    headers = {
+        "accept": "application/json",
+        "Authorization": f"Bearer {config('TMDB')}"
+    }
+
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+
+        results = data.get('results', [])
+        total_pages = data.get('total_pages', 1)
+        total_results = data.get('total_results', 0)
+
+        # Print preview of results
+        for i, show in enumerate(results, start=1):
+            print(f"{i}. {show.get('name')} ({show.get('first_air_date')})")
+
+        return {
+            "results": results,
+            "page": page,
+            "total_pages": total_pages,
+            "total_results": total_results
+        }
+
+    except Exception as e:
+        print(f"ERROR: Failed to fetch popular TV shows. Reason: {e}")
+        return {
+            "results": [],
+            "page": page,
+            "total_pages": 0,
+            "total_results": 0
+        }
 
 
 if __name__ == '__main__':
-    # print("Random Top 3 Movies:\n")
-    # top_3_movies()
+    # get_popular_shows()
+    # get_popular_shows(page=2)
+    smt = search_movies_by_title('Mission', page=2)
+    print('==================================================================')
+    print(smt)
+    print('==================================================================')
 
-    # print("\nRandom Top 3 TV Shows:\n")
-    # top_3_tv_shows()
-    print(f'===========================================================================')
-    # print(f'Details for Movie ID: {870028}')
-    print(f'===========================================================================')
-    # print(get_movie_details(870028))
     
-    
-    # print(f'{search_movies_by_title('inception')}')
-    print(f'===========================================================================')
-    # print(f'{get_tv_show_details(1399)}')
-    print(f'{get_tv_cast(1399)}')
-    # print(f'{search_movies_by_title('inception', page=2)}')
-    # print(f'{search_movies_by_title('inception', page=3)}')
+    # search_movies_by_title('Mission', page=2)
