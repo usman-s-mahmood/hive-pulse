@@ -57,7 +57,7 @@
             <div class="container-fluid header-top h-25">
                 <div class="container d-flex align-items-center ">
                     <div class="d-flex align-items-center ">
-                        <a href="#" class="navbar-brand" style="height: 125px;">
+                        <a href="/" class="navbar-brand" style="height: 125px;">
                             <h3 class="text-primary mb-0"><i class="fas fa-bolt"></i> Hive Pulse</h3>
                             <!-- <img src="img/logo.png" alt="Logo"> -->
                         </a>
@@ -112,6 +112,8 @@
                                     <div class="navbar-nav mx-0 mx-lg-auto bg-white">
                                         <a href="/" class="nav-item nav-link {% if index %}active{% endif %}">Home</a>
                                         <a href="/about" class="nav-item nav-link {% if about %}active{% endif %}">About</a>
+                                        <a href="/movie?page=1" class="nav-item nav-link {% if movie %}active{% endif %}">Movies</a>
+                                        <a href="/movie/tv?page=1" class="nav-item nav-link {% if show %}active{% endif %}">Shows</a>
                                         <a href="/posts" class="nav-item nav-link">Blog</a>
                                         {% if user.is_authenticated %}
                                         <div class="nav-item dropdown">
@@ -181,6 +183,10 @@
                         
                         <div class="input-group w-75 mx-auto d-flex">
                             <input type="search" class="form-control p-3" placeholder="keywords" aria-describedby="search-icon-1" name="search" required>
+                            <select name="TV" id="" class="form-control p-3">
+                                <option value="" selected>Movie</option>
+                                <option value="true">TV</option>
+                            </select>
                             <input type="hidden" name="page" value=1>
                             <button type="submit"><span id="search-icon-1" class="btn bg-light border nput-group-text p-3"><i class="fa fa-search"></i></span></button>
                         </div>

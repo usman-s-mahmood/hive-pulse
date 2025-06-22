@@ -4,11 +4,11 @@
 <!-- Header Start -->
 <div class="container-fluid bg-breadcrumb">
     <div class="container text-center py-5" style="max-width: 900px;">
-        <h4 class="text-white display-4 mb-4 wow fadeInDown" data-wow-delay="0.1s">Movie Search: {{query}}</h4>
+        <h4 class="text-white display-4 mb-4 wow fadeInDown" data-wow-delay="0.1s">Popular Shows</h4>
         <ol class="breadcrumb d-flex justify-content-center mb-0 wow fadeInDown" data-wow-delay="0.3s">
             <li class="breadcrumb-item"><a href="/">Home</a></li>
             <li class="breadcrumb-item text-primary">Movies</li>
-            <li class="breadcrumb-item active text-primary">Search Results</li>
+            <li class="breadcrumb-item active text-primary">TV</li>
         </ol>    
     </div>
 </div>
@@ -21,23 +21,23 @@
                     <p class="fs-1 text-center"><strong>You are lost, Page is out range!</strong></p>
                 {% endif %}
                 {% if results.results %}
-                    <p class="fs-4 text-center"><strong>{{ total_results }} found for this query: {{ query }}</strong></p>
+                    {% comment %} <p class="fs-4 text-center"><strong>{{ total_results }} found for this query: {{ query }}</strong></p> {% endcomment %}
                 {% else %}
-                    <p class="fs-1 text-center"><strong>No posts found for this query: {{ query }}</strong></p>
+                    <p class="fs-1 text-center"><strong>No posts found</strong></p>
                 {% endif %}
 
                 <div class="row">
                     {% for movie in results.results %}
                         <div class="col-4">
-                            <a href="/movie/detail/{{movie.id}}">
+                            <a href="/movie/detail/tv/{{movie.id}}">
                                 <div class="card">
                                     {% if movie.poster_path is none %}
-                                        <img src="https://ik.imagekit.io/hivepulse/hivepulse/default/default-post.png" alt="{{movie.original_title}}" class="img-fluid">
+                                        <img src="https://ik.imagekit.io/hivepulse/hivepulse/default/default-post.png" alt="{{movie.original_name}}" class="img-fluid">
                                     {% else %}
-                                        <img src="https://media.themoviedb.org/t/p/w220_and_h330_face{{movie.poster_path}}" alt="{{movie.original_title}}" class="img-fluid">
+                                        <img src="https://media.themoviedb.org/t/p/w220_and_h330_face{{movie.poster_path}}" alt="{{movie.original_name}}" class="img-fluid">
                                     {% endif %}
                                     <div class="card-body">
-                                        <p class="text-dark"><strong>{{movie.original_title}}</strong></p>
+                                        <p class="text-dark"><strong>{{movie.original_name}}</strong></p>
                                     </div>
                                 </div>      
                             </a>
@@ -103,7 +103,7 @@
             </div>
         </div>
         <div>
-        <p class="fs-6 text-dark text-center px-2 my-3">page: {{current_page}} of {{total_pages}} page(s)</p>
+            <p class="fs-6 text-dark text-center px-2 my-3">page: {{current_page}} of {{total_pages}} page(s)</p>
         </div>
         <div class="row text-center">
             <div class="pagination d-flex justify-content-center mt-4">
@@ -112,7 +112,7 @@
                     {# Previous Button #}
                     {% if current_page > 1 %}
                         <li class="page-item">
-                            <a class="page-link" href="/movie/search?search={{ query }}&page={{ results.page|add:"-1" }}">Previous</a>
+                            <a class="page-link" href="/movie/tv?page={{ results.page|add:"-1" }}">Previous</a>
                         </li>
                     {% else %}
                         <li class="page-item disabled">
@@ -122,7 +122,7 @@
                     {# Next Button #}
                     {% if current_page < total_pages %}
                         <li class="page-item">
-                            <a class="page-link" href="/movie/search?search={{ query }}&page={{ results.page|add:"1" }}">Next</a>
+                            <a class="page-link" href="/movie/tv?page={{ results.page|add:"1" }}">Next</a>
                         </li>
                     {% else %}
                         <li class="page-item disabled">
