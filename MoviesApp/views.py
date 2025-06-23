@@ -132,6 +132,13 @@ def like_movies(request):
     result = TMDB_API.get_movie_details(
         movie_id=movie_id
     )
+    if movie_id is None:
+        messages.warning(
+            request,
+            message=f'Invalid Operation! movie ID not provided',
+            extra_tags='error'
+        )
+        return redirect('/auth/dashboard')
     if result == None:
         messages.warning(
             request,
@@ -155,7 +162,8 @@ def like_movies(request):
         movie_id=movie_id,
         liked_by=request.user,
         title=result['original_title'],
-        poster_path=result['poster_path']
+        poster_path=result['poster_path'],
+        movie_rating=result['vote_average']
     )
     messages.success(
         request,

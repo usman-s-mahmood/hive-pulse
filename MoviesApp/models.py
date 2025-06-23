@@ -23,6 +23,10 @@ class LikedMovies(models.Model):
         null=False,
         blank=False
     )
+    movie_rating = models.FloatField(
+        null=False,
+        blank=False
+    )
     added_on = models.DateTimeField(
         auto_now_add=True
     )
