@@ -577,7 +577,7 @@ def get_popular_shows(page=1):
 if __name__ == '__main__':
     # get_popular_shows()
     # get_popular_shows(page=2)
-    smt = get_popular_movies(page=1)
+    smt = get_movie_details(1087891)
     print('==================================================================')
     print(smt)
     print('==================================================================')

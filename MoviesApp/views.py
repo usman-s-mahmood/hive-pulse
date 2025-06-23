@@ -3,6 +3,8 @@ from django.contrib import messages
 from BlogApp import models as blog_models
 from BlogApp import views as blog_views
 from helpers import TMDB_API
+from . import models
+from django.contrib.auth.decorators import login_required
 
 # Create your views here.
 
@@ -124,4 +126,41 @@ def popular_shows(request):
         }
     )    
 
+@login_required(login_url='/auth/login')
+def like_movies(request):
+    movie_id=request.GET.get('movie_id')
+    result = TMDB_API.get_movie_details(
+        movie_id=movie_id
+    )
+    if result == None:
+        messages.warning(
+            request,
+            message=f'Invalid Operation! Requested Resource Not Found',
+            extra_tags='error'
+        )
+        return redirect('/auth/dashboard')
+    movie_query = models.LikedMovies.objects.filter(
+        liked_by=request.user.id,
+        movie_id=movie_id
+    )
     
+    if movie_query.exists():
+        messages.warning(
+            request,
+            message=f'This Movie is already liked by you!',
+            extra_tags='error'
+        )
+        return redirect('/auth/dashboard')
+    movie = models.LikedMovies.objects.create(
+        movie_id=movie_id,
+        liked_by=request.user,
+        title=result['original_title'],
+        poster_path=result['poster_path']
+    )
+    messages.success(
+        request,
+        message=f'Movie is added to your wishlist',
+        extra_tags='success'
+    )
+    return redirect('/auth/dashboard')
+
