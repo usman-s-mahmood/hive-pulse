@@ -14,6 +14,7 @@ import os
 from django.contrib.auth import views as auth_views
 from HivePulse.settings import imagekit
 from HivePulse import settings
+from MoviesApp import models as movie_models
 
 # Create your views here.
 
@@ -307,6 +308,11 @@ def create_profile(request):
                 # print('reached if block')
                 if os.path.exists(temp_image_path):
                     os.remove(temp_image_path)
+                models.ImageUpload.objects.create(
+                    uploaded_by = request.user,
+                    image_url = upload_response.url,
+                    image_type = 'ProfilePicture',
+                )
             profile.save()
             messages.success(
                 request,
@@ -380,6 +386,11 @@ def edit_profile(request):
                 # print('reached if block')
                 if os.path.exists(temp_image_path):
                     os.remove(temp_image_path)
+                models.ImageUpload.objects.create(
+                    uploaded_by = request.user,
+                    image_url = upload_response.url,
+                    image_type = 'ProfilePicture',
+                )
             profile.save()
             messages.success(
                 request,
@@ -420,7 +431,7 @@ def user_dashboard(request):
     if post_query is not None:
         post_none = False
     pagination = Paginator(post_query, 3)
-    page = request.GET.get('page')
+    page = request.GET.get('post_page')
     post_query = pagination.get_page(page)
     user_posts = BlogPosts.objects.filter(
         likes=request.user, 
@@ -430,8 +441,28 @@ def user_dashboard(request):
     if user_posts is not None:
         user_post_none = False
     user_pagination = Paginator(user_posts, 3)
-    user_page = request.GET.get('page')
+    user_page = request.GET.get('like_page')
     user_posts = user_pagination.get_page(user_page)
+    
+    movies_query = movie_models.LikedMovies.objects.filter(
+        liked_by=request.user
+    ).all().order_by('-pk')
+    movies_none = True
+    if movies_query.exists():
+        movies_none = False
+    movie_pagination = Paginator(movies_query, 3)
+    movie_page = request.GET.get('movie_page')
+    movies = movie_pagination.get_page(movie_page)
+    
+    shows_query = movie_models.LikedShows.objects.filter(
+        liked_by = request.user,
+    ).all().order_by('-pk')
+    shows_none = True
+    if shows_query.exists():
+        shows_none = False
+    show_pagination = Paginator(shows_query, 3)
+    show_page = request.GET.get('show_page')
+    shows = show_pagination.get_page(show_page)
     return render(
         request,
         'AuthApp/dashboard.html',
@@ -440,7 +471,11 @@ def user_dashboard(request):
             'posts': post_query,
             'dashboard': True,
             'user_post_none': user_post_none,
-            'user_posts': user_posts
+            'user_posts': user_posts,
+            'movies': movies,
+            'movies_none': movies_none,
+            'shows': shows,
+            'shows_none': shows_none
         }
     )
     

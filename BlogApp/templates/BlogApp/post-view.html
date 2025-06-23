@@ -35,7 +35,7 @@
                     {% if post.total_likes == 0 %}
                         <p class="fs-4 text-center"><strong class="text-secondary">No Likes on this post! Be the first to like it</strong></p>
                     {% else %}
-                        <p class="fs-4 text-center"><strong class="text-secondary">Total Linkes on this post: {{post.total_likes}}</strong></p>
+                        <p class="fs-4 text-center"><strong class="text-secondary">Total Likes on this post: {{post.total_likes}}</strong></p>
                     {% endif %}
                     {% if not user.is_authenticated %}
                         <a href="/auth/login" class="btn btn-success">Login to like this post</a>

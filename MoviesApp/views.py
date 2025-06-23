@@ -128,7 +128,7 @@ def popular_shows(request):
 
 @login_required(login_url='/auth/login')
 def like_movies(request):
-    movie_id=request.GET.get('movie_id')
+    movie_id=int(request.GET.get('movie_id'))
     result = TMDB_API.get_movie_details(
         movie_id=movie_id
     )
@@ -167,8 +167,57 @@ def like_movies(request):
     )
     messages.success(
         request,
-        message=f'Movie is added to your wishlist',
+        message=f'{result['original_title']} is added to your wishlist',
         extra_tags='success'
     )
     return redirect('/auth/dashboard')
+
+
+@login_required(login_url='/auth/login')
+def like_shows(request):
+    show_id=int(request.GET.get('show_id'))
+    result = TMDB_API.get_tv_show_details(
+        tv_id = show_id
+    )
+    if show_id is None:
+        messages.warning(
+            request,
+            message=f'Invalid Operation! TV Show ID not provided',
+            extra_tags='error'
+        )
+        return redirect('/auth/dashboard')
+    if result == None:
+        messages.warning(
+            request,
+            message=f'Invalid Operation! Requested Resource Not Found',
+            extra_tags='error'
+        )
+        return redirect('/auth/dashboard')
+    show_query = models.LikedShows.objects.filter(
+        liked_by=request.user.id,
+        show_id=show_id
+    )
+    
+    if show_query.exists():
+        messages.warning(
+            request,
+            message=f'This Movie is already liked by you!',
+            extra_tags='error'
+        )
+        return redirect('/auth/dashboard')
+    show = models.LikedShows.objects.create(
+        show_id=show_id,
+        liked_by=request.user,
+        title=result['original_name'],
+        poster_path=result['poster_path'],
+        show_rating=result['vote_average']
+    )
+    messages.success(
+        request,
+        message=f'{result['original_name']} is added to your wishlist',
+        extra_tags='success'
+    )
+    return redirect('/auth/dashboard')
+
+
 

@@ -80,7 +80,7 @@
                 </div>
             {% endif %}
             {% if user.is_superuser or user.is_staff %}
-                <div class="row">
+                <div class="row" id="post-section">
                     <hr>
                         <p class="fs-1 text-center"><strong class="text-dark">Posts by: {{user.username}}</strong></p>
                     <hr>
@@ -140,43 +140,32 @@
                         <div class="row text-center">
                             <div>
                                 {% if posts.has_previous %}
-                                    <a href="?page={{posts.previous_page_number}}" class="btn btn-primary me-1">Previous</a>
+                                    <a href="?post_page={{posts.previous_page_number}}#post-section" class="btn btn-primary me-1">Previous</a>
                                 {% endif %}
-                                {% comment %} {{posts.number}}
-                                {{posts.paginator.num_pages}} {% endcomment %}
                                 {% if posts.has_next %}
-                                    <a href="?page={{posts.next_page_number}}" class="btn btn-primary">Next</a>
+                                    <a href="?post_page={{posts.next_page_number}}#post-section" class="btn btn-primary">Next</a>
                                 {% endif %}
                             </div>
                         </div>
-                    {% endif %}
+                        {% endif %}
                 </div>
             {% endif %}
             <br>
-            <div class="row mt-3 text-center">
+            <div class="row mt-3 text-center" id="like-section">
                 <hr>
                     <p class="fs-1 text-center"><strong class="text-dark">Posts Liked by: {{user.username}}</strong></p>
                 <hr>
                     {% if user_post_none %}
-                        <p class="fs-3 text-center"><strong class="text-secondary">No posts are like by {{user.username}}! Like your first post</strong></p>
+                        <p class="fs-3 text-center"><strong class="text-secondary">No posts are liked by {{user.username}}! Like your first post</strong></p>
                         <a href="/posts" class="btn btn-success">Blog Post</a>
                     {% else %}
                     <div class="row text-center">
                         {% for user_post in user_posts %}
                         <div class="project-item mb-5 col-md-4 text-center">
                             <div class="position-relative">
-                                {% comment %} <a href="/posts/{{user_post.title|slugify}}"> {% endcomment %}
-                                {% comment %} <form action="/posts/{{user_post.id}}" id="likedPost{{user_post.id}}" method=POST>
-                                    {% csrf_token %}
-                                    <input type="hidden" name="post_id" value={{user_post.id}}>
-                                </form>
-                                <a 
-                                    href="javascript:void(0);"
-                                    onclick="document.getElementById('likedPost{{user_post.id}}').submit();"
-                                > {% endcomment %}
                                 <a href="/posts/{{user_post.slug}}">
                                     {% if user_post.thumbnail %}
-                                        <img src="{{user_post.thumbnail.url}}" alt="{{user_post.title}}" class="img-fluid" width="720px">
+                                        <img src="{{user_post.thumbnail}}/tr:w-720,h-360" alt="{{user_post.title}}" class="img-fluid" width="720px">
                                     {% else %}
                                         <img src="https://ik.imagekit.io/hivepulse/hivepulse/default/default-post.png" alt="{{user_post.title}}" class="img-fluid" width="720px">
                                     {% endif %}
@@ -190,34 +179,104 @@
                                 {{user_post.title|slice:":20"}} ...</a></p>
                                 <p class="text-secondary">{{user_post.tagline|slice:":30"}} ...</p>
                             </div>
-                            <div class="btn-group mb-5 text-center">
-                                <a href="javascript:void(0);"
-                                onclick="document.getElementById('likedPost{{user_post.id}}').submit();" class="btn btn-success me-2">Read Post</a>
-                                {% if user.is_staff or user.is_superuser %}
-                                {% if user.id == user_post.author.id %}
-                                    <a href="/edit-post/{{user_post.id}}" class="btn btn-success me-2">Edit Post</a>
-                                    <a href="/delete-post/{{user_post.id}}" class="btn btn-danger">Delete Post</a>
-                                    <br>
-                                {% endif %}
-                                {% endif %}
-                            </div>
                         </div>
                         {% endfor %}
                     </div>
-                    <div class="row text-center">
+                    <div class="row text-center mt-3">
                         <div>
                             {% if user_posts.has_previous %}
-                                <a href="?page={{user_posts.previous_page_number}}" class="btn btn-primary me-1">Previous</a>
+                                <a href="?like_page={{user_posts.previous_page_number}}#like-section" class="btn btn-primary me-1">Previous</a>
                             {% endif %}
                             {% comment %} {{posts.number}}
                             {{posts.paginator.num_pages}} {% endcomment %}
                             {% if user_posts.has_next %}
-                                <a href="?page={{user_posts.next_page_number}}" class="btn btn-primary">Next</a>
+                                <a href="?like_page={{user_posts.next_page_number}}#like-section" class="btn btn-primary">Next</a>
                             {% endif %}
                         </div>
                     </div>
+                    {% endif %}
             </div>
-            {% endif %}
+
+            <div class="row mt-3 text-center" id="movie-section">
+                <hr>
+                    <p class="fs-1 text-center"><strong class="text-dark">Movies Liked by: {{user.username}}</strong></p>
+                <hr>
+                {% if movies_none %}
+                    <p class="fs-3 text-center"><strong class="text-secondary">No movies are liked by {{user.username}}! Like your first Movie</strong></p>
+                    <div class="text-center">
+                        <a href="/movie?page=1" class="btn btn-success">Movies</a>
+                    </div>
+                {% else %}
+                    <div class="row text-center">
+                        {% for movie in movies %}
+                            <div class="col-4">
+                                <a href="/movie/detail/{{movie.movie_id}}">
+                                    <div class="card">
+                                        {% if movie.poster_path is none %}
+                                            <img src="https://ik.imagekit.io/hivepulse/hivepulse/default/default-post.png" alt="{{movie.title}}" class="img-fluid">
+                                        {% else %}
+                                            <img src="https://media.themoviedb.org/t/p/w220_and_h330_face{{movie.poster_path}}" alt="{{movie.title}}" class="img-fluid">
+                                        {% endif %}
+                                        <div class="card-body">
+                                            <p class="text-dark"><strong>{{movie.title}}</strong></p>
+                                            <p class="text-dark">Rating: {{movie.movie_rating}}/10 | Liked At: {{movie.added_on}}</p>
+
+                                        </div>
+                                    </div>      
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center mt-3">
+                        {% if movies.has_previous %}
+                            <a href="?movie_page={{movies.previous_page_number}}#movie-section" class="btn btn-primary me-1">Previous</a>
+                        {% endif %}
+                        {% if movies.has_next %}
+                            <a href="?movie_page={{movies.next_page_number}}#movie-section" class="btn btn-primary">Next</a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="row mt-3 text-center" id="show-section">
+                <hr>
+                    <p class="fs-1 text-center"><strong class="text-dark">TV Shows Liked by: {{user.username}}</strong></p>
+                <hr>
+                {% if movies_none %}
+                    <p class="fs-3 text-center"><strong class="text-secondary">No TV Shows are liked by {{user.username}}! Like your first Movie</strong></p>
+                    <div class="text-center">
+                        <a href="/movie/tv?page=1" class="btn btn-success">TV Shows</a>
+                    </div>
+                {% else %}
+                    <div class="row text-center">
+                        {% for movie in shows %}
+                            <div class="col-4">
+                                <a href="/movie/detail/tv/{{movie.show_id}}">
+                                    <div class="card">
+                                        {% if movie.poster_path is none %}
+                                            <img src="https://ik.imagekit.io/hivepulse/hivepulse/default/default-post.png" alt="{{movie.title}}" class="img-fluid">
+                                        {% else %}
+                                            <img src="https://media.themoviedb.org/t/p/w220_and_h330_face{{movie.poster_path}}" alt="{{movie.title}}" class="img-fluid">
+                                        {% endif %}
+                                        <div class="card-body">
+                                            <p class="text-dark"><strong>{{movie.title}}</strong></p>
+                                            <p class="text-dark">Rating: {{movie.show_rating}}/10 | Liked At: {{movie.added_on}}</p>
+                                        </div>
+                                    </div>      
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center mt-3">
+                        {% if shows.has_previous %}
+                            <a href="?show_page={{shows.previous_page_number}}#show-section" class="btn btn-primary me-1">Previous</a>
+                        {% endif %}
+                        {% if shows.has_next %}
+                            <a href="?show_page={{shows.next_page_number}}#show-section" class="btn btn-primary">Next</a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
         </div>
     </div>
 <br>

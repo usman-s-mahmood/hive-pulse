@@ -44,9 +44,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'AuthApp',
-    'BlogApp',
-    'MoviesApp',
+    'AuthApp.apps.AuthappConfig',
+    'BlogApp.apps.BlogappConfig',
+    'MoviesApp.apps.MoviesappConfig',
     'ckeditor',
     'comment',
     'helpers'

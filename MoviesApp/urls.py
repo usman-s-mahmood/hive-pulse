@@ -10,4 +10,5 @@ urlpatterns=[
     path('', views.popular_movies, name='movie-popular'),
     path('tv', views.popular_shows, name='movie-show-popular'),
     path('like-movie', views.like_movies, name='movie-like-view'),
+    path('like-show', views.like_shows, name='show-like-view'),
 ]

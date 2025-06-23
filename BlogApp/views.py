@@ -15,6 +15,7 @@ from HivePulse.settings import imagekit
 from HivePulse import settings
 from django.core.mail import send_mail
 from helpers import TMDB_API
+from AuthApp import models as auth_models
 
 # Create your views here.
 
@@ -122,6 +123,11 @@ def add_post(request):
                 # print('reached if block')
                 if os.path.exists(temp_image_path):
                     os.remove(temp_image_path)
+                auth_models.ImageUpload.objects.create(
+                    uploaded_by = request.user,
+                    image_url = upload_response.url,
+                    image_type = 'BlogThumbnail',
+                )
             post.save() # it works!
             # print('post saved!')
             messages.success(
@@ -226,6 +232,11 @@ def edit_post(request, id):
 
                 if os.path.exists(temp_image_path):
                     os.remove(temp_image_path)
+                auth_models.ImageUpload.objects.create(
+                    uploaded_by = request.user,
+                    image_url = upload_response.url,
+                    image_type = 'BlogThumbnail',
+                )
             else:
                 # Restore existing thumbnail if no new one uploaded
                 post.thumbnail = original_thumbnail

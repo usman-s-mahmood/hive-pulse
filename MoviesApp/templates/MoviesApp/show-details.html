@@ -45,6 +45,13 @@
                         <p class="text-dark">Available Languages:{% for lang in show.spoken_languages %} {{lang.name}} | {% endfor %}</p>
                         <p class="text-dark">Production Company(s): {% for com in show.production_companies %} {{com.name}} |  {% endfor %}</p>
                         <p class="text-dark">Homepage: <a href="{{show.homepage}}" target="_blank">{{show.homepage}}</a></p>
+                        <div class="text-center">
+                            {% if request.user.is_authenticated %}
+                                <a href="/movie/like-show?show_id={{show.id}}" class="btn btn-success">Like Show</a>
+                            {% else %}
+                                Login To Like This Show: <a href="/auth/login" class="btn btn-success">login</a>
+                            {% endif %}
+                        </div>
                     </div>
                     <div>
                         <hr>
