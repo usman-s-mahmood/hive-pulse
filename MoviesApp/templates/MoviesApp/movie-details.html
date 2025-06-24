@@ -47,7 +47,11 @@
                         <p class="text-dark">Homepage: <a href="{{movie.homepage}}" target="_blank">{{movie.homepage}}</a></p>
                         <div class="text-center">
                         {% if request.user.is_authenticated %}
-                            <a href="/movie/like-movie?movie_id={{movie.id}}" class="btn btn-success">Like Movie</a>
+                            {% if liked_status %}
+                                <a href="/movie/unlike-movie?movie_id={{movie.id}}" class="btn btn-success">Unlike Movie</a>
+                            {% else %}
+                                <a href="/movie/like-movie?movie_id={{movie.id}}" class="btn btn-success">Like Movie</a>
+                            {% endif %}
                         {% else %}
                             Login To Like This Movie: <a href="/auth/login" class="btn btn-success">login</a>
                         {% endif %}
