@@ -1,5 +1,5 @@
 from .TMDB_API import get_movie_details, get_popular_movies
-from MoviesApp.models import LikedMovies  # Update this import path
+from MoviesApp.models import LikedMovies
 from django.contrib.auth.models import User
 import math
 
@@ -22,7 +22,7 @@ def build_feature_vector(movie_data):
     return [rating] + genre_vector
 
 def recommend_movies_knn(user: User, k=3, max_pool_size=20):
-    liked = LikedMovies.objects.filter(liked_by=user)
+    liked = LikedMovies.objects.filter(liked_by=user).order_by('-pk')
     liked_movie_ids = [m.movie_id for m in liked]
     liked_titles = [m.title for m in liked]
 
@@ -33,6 +33,8 @@ def recommend_movies_knn(user: User, k=3, max_pool_size=20):
             liked_vectors.append({
                 'id': movie_id,
                 'title': data.get('title'),
+                'poster_path': data.get('poster_path'),
+                'vote_average': data.get('vote_average', 0),
                 'vector': build_feature_vector(data)
             })
 
@@ -42,7 +44,13 @@ def recommend_movies_knn(user: User, k=3, max_pool_size=20):
 
     pool = get_popular_movies(page=1).get("results", [])[:max_pool_size]
     candidates = [
-        {'id': m['id'], 'title': m['title'], 'vector': build_feature_vector(m)}
+        {
+            'id': m['id'],
+            'title': m['title'],
+            'poster_path': m.get('poster_path'),
+            'vote_average': m.get('vote_average', 0),
+            'vector': build_feature_vector(m)
+        }
         for m in pool if m['id'] not in liked_movie_ids
     ]
 
@@ -50,27 +58,32 @@ def recommend_movies_knn(user: User, k=3, max_pool_size=20):
     for liked in liked_vectors:
         for cand in candidates:
             dist = euclidean_distance(liked['vector'], cand['vector'])
-            similarity_scores.setdefault(cand['id'], {'title': cand['title'], 'distances': []})
+            similarity_scores.setdefault(
+                cand['id'],
+                {
+                    'title': cand['title'],
+                    'poster_path': cand['poster_path'],
+                    'vote_average': cand['vote_average'],
+                    'distances': []
+                }
+            )
             similarity_scores[cand['id']]['distances'].append(dist)
 
-    for sid in similarity_scores:
-        dists = similarity_scores[sid]['distances']
-        similarity_scores[sid]['score'] = sum(dists) / len(dists)
+    for mid in similarity_scores:
+        dists = similarity_scores[mid]['distances']
+        similarity_scores[mid]['score'] = sum(dists) / len(dists)
 
     recommended = sorted(similarity_scores.items(), key=lambda x: x[1]['score'])
 
     print(f"\nTop {k} movie recommendations for {user.username} (based on: {liked_titles})")
     top_recs = []
     for i, (mid, data) in enumerate(recommended[:k]):
-        print(f"{i+1}. {data['title']} (Similarity Score: {data['score']:.2f})")
-        top_recs.append(data['title'])
+        print(f"{i+1}. {data['title']} (⭐ {data['vote_average']}) | Score: {data['score']:.2f}")
+        top_recs.append({
+            'id': mid,
+            'title': data['title'],
+            'poster_path': data['poster_path'],
+            'vote_average': data['vote_average']
+        })
 
     return top_recs
-
-if __name__ == '__main__':
-    from django.contrib.auth.models import User
-
-    user = User.objects.get(username='usman')
-
-    # Recommend top 3 movies
-    recommend_movies_knn(user)

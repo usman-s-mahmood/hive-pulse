@@ -4,147 +4,128 @@
 <!-- Header Start -->
 <div class="container-fluid bg-breadcrumb">
     <div class="container text-center py-5" style="max-width: 900px;">
-        <h4 class="text-white display-4 mb-4 wow fadeInDown" data-wow-delay="0.1s">Movie Detail</h4>
-        <ol class="breadcrumb d-flex justify-content-center mb-0 wow fadeInDown" data-wow-delay="0.3s">
+        <h1 class="text-white display-4 mb-4">Movie Detail</h1>
+        <ol class="breadcrumb justify-content-center mb-0">
             <li class="breadcrumb-item"><a href="/">Home</a></li>
-            <li class="breadcrumb-item text-primary">Movie/Detail</li>
+            <li class="breadcrumb-item text-primary">Movie / Detail</li>
             <li class="breadcrumb-item active text-primary">Movie Detail</li>
-        </ol>    
+        </ol>
     </div>
 </div>
 <!-- Header End -->
-<br>
-    <div class="container">
-        <div class="row">
-            {% if movie is none %}
-                <div class="col-md-8 mb-5">
-                    <p class="fs-3">No Movie Found with ID: <strong>{{movie_id}}</strong></p>
-                </div>
-            {% else %}
-                <div class="col-md-8 mb-5">
-                    <div class="row p-5">
-                        {% comment %} {% if post.thumbnail %}
-                            <img src="{{post.thumbnail}}" alt="{{post.title}}" class="img-fluid" width="720px">
-                        {% else %}
-                            <img src="https://ik.imagekit.io/hivepulse/hivepulse/default/default-post.png" alt="{{post.title}}" class="img-fluid" width="720px">
-                        {% endif %} {% endcomment %}
-                        <img src="https://image.tmdb.org/t/p/w600_and_h900_bestv2/{{movie.poster_path}}" alt="poster" class="img-fluid">
+
+<div class="container my-5">
+    <div class="row">
+        {% if movie is none %}
+        <div class="col-lg-8">
+            <div class="alert alert-danger">
+                No movie found with ID: <strong>{{ movie_id }}</strong>
+            </div>
+        </div>
+        {% else %}
+        <!-- Movie Main Content -->
+        <div class="col-lg-8 mb-5">
+            <div class="card shadow-sm mb-4">
+                <div class="row g-0">
+                    <div class="col-md-5 text-center p-3">
+                        <img src="https://image.tmdb.org/t/p/w600_and_h900_bestv2/{{ movie.poster_path }}" class="img-fluid rounded" alt="{{ movie.title }}">
                     </div>
-                    <div class="row">
-                        <p class="fs-1 text-center text-dark">Title: <strong>{{movie.title}}</strong></p>
-                        <hr>
-                        <p class="text-dark">Status: <strong>{{movie.status}}</strong></p>
-                        <hr>
-                        <p class="text-dark">Tagline: <strong>{{movie.tagline}}</strong></p>
-                        <p class="mb-4 text-dark">{{movie.overview}}
+                    <div class="col-md-7 p-4">
+                        <h2 class="card-title text-dark">{{ movie.title }}</h2>
+                        <p class="mb-2"><strong>Status:</strong> {{ movie.status }}</p>
+                        <p class="mb-2"><strong>Tagline:</strong> {{ movie.tagline }}</p>
+                        <p class="mb-3 text-muted">{{ movie.overview }}</p>
+                        <p class="mb-1"><strong>Release Date:</strong> {{ movie.release_date }}</p>
+                        <p class="mb-1"><strong>Rating:</strong> {{ movie.vote_average }} ⭐</p>
+                        <p class="mb-1"><strong>Budget:</strong> ${{ movie.budget|default:"N/A" }}</p>
+                        <p class="mb-1"><strong>Revenue:</strong> ${{ movie.revenue|default:"N/A" }}</p>
+                        <p class="mb-1"><strong>Production Countries:</strong> 
+                            {% for con in movie.production_countries %}{{ con.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
                         </p>
-                        <p class="text-dark">Released on: {{movie.release_date}} | rating: {{movie.vote_average}}⭐ out of 10</p>
-                        <hr>
-                        <p class="text-dark">Budget: ${{movie.budget}} | Revenue: ${{movie.revenue}}</p>
-                        <p class="text-dark">Production Country(s): {% for con in movie.production_countries %} {{con.name}} | {% endfor %}</p>
-                        <p class="text-dark">Available Languages:{% for lang in movie.spoken_languages %} {{lang.name}} |  {% endfor %}</p>
-                        <p class="text-dark">Production Company(s): {% for com in movie.production_companies %} {{com.name}} |  {% endfor %}</p>
-                        <p class="text-dark">Homepage: <a href="{{movie.homepage}}" target="_blank">{{movie.homepage}}</a></p>
-                        <div class="text-center">
-                        {% if request.user.is_authenticated %}
-                            {% if liked_status %}
-                                <a href="/movie/unlike-movie?movie_id={{movie.id}}" class="btn btn-success">Unlike Movie</a>
+                        <p class="mb-1"><strong>Languages:</strong> 
+                            {% for lang in movie.spoken_languages %}{{ lang.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                        </p>
+                        <p class="mb-1"><strong>Production Companies:</strong> 
+                            {% for com in movie.production_companies %}{{ com.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                        </p>
+                        <p class="mb-2"><strong>Homepage:</strong> 
+                            <a href="{{ movie.homepage }}" target="_blank">{{ movie.homepage }}</a>
+                        </p>
+
+                        <div class="text-center mt-3">
+                            {% if request.user.is_authenticated %}
+                                {% if liked_status %}
+                                    <a href="/movie/unlike-movie?movie_id={{ movie.id }}" class="btn btn-outline-danger">Unlike Movie</a>
+                                {% else %}
+                                    <a href="/movie/like-movie?movie_id={{ movie.id }}" class="btn btn-outline-success">Like Movie</a>
+                                {% endif %}
                             {% else %}
-                                <a href="/movie/like-movie?movie_id={{movie.id}}" class="btn btn-success">Like Movie</a>
+                                <p>Login to like this movie:</p>
+                                <a href="/auth/login" class="btn btn-success">Login</a>
                             {% endif %}
-                        {% else %}
-                            Login To Like This Movie: <a href="/auth/login" class="btn btn-success">login</a>
-                        {% endif %}
                         </div>
                     </div>
-                    <div>
-                        <hr>
-                            <p class="fs-3"><strong class="text-dark">Cast Details:</strong></p>
-                        <hr>
-                        {% if cast is none %}
-                            <p class="fs-6 text-dark">Unable to load Cast for this Movie</p>
-                        {% else %}
-                            <div class="row">
-                                {% for mem in cast %}
-                                    <div class="col-4">
-                                        <div class="card">
-                                            {% if mem.profile_path is none %}
-                                                <img src="https://ik.imagekit.io/hivepulse/hivepulse/default/default-user.jpg" alt="{{mem.original_name}}" class="img-fluid">
-                                            {% else %}
-                                                <img src="https://media.themoviedb.org/t/p/w138_and_h175_face/{{mem.profile_path}}" alt="{{mem.original_name}}" class="img-fluid">
-                                            {% endif %}
-                                            <div class="card-body">
-                                                <p class="text-dark">Name: <strong>{{mem.name}}</strong></p>
-                                                <p class="text-dark">Character: <strong>{{mem.character}}</strong></p>
-                                            </div>
-                                        </div>      
-                                    </div>
-                                {% endfor %}
+                </div>
+            </div>
+
+            <!-- Cast Section -->
+            <div class="mt-5">
+                <h4 class="mb-4 text-dark">Cast</h4>
+                {% if cast is none %}
+                    <div class="alert alert-secondary">Unable to load cast for this movie.</div>
+                {% else %}
+                    <div class="row g-4">
+                        {% for mem in cast %}
+                        <div class="col-6 col-md-4 col-lg-3">
+                            <div class="card h-100 text-center shadow-sm">
+                                <img src="{% if mem.profile_path %}https://media.themoviedb.org/t/p/w138_and_h175_face/{{ mem.profile_path }}{% else %}https://ik.imagekit.io/hivepulse/hivepulse/default/default-user.jpg{% endif %}" class="card-img-top" alt="{{ mem.name }}">
+                                <div class="card-body">
+                                    <h6 class="card-title">{{ mem.name }}</h6>
+                                    <p class="text-muted small">as {{ mem.character }}</p>
+                                </div>
                             </div>
-                        {% endif %}
-                        
+                        </div>
+                        {% endfor %}
                     </div>
-                    
-                </div>
-            {% endif %}
-            <br>
-            <div class="col-md-4">
-                <div class="row">
-                        <form class="d-flex" role="search" method=POST action="/search">
-                            {% csrf_token %}
-                            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="search">
-                            <button class="btn btn-outline-primary" type="submit">Search</button>
-                        </form>
-                </div>
-                <br>
-                <div class="row">
-                    <hr>
-                        <p class="fs-4 text-center"><strong>Categories</strong></p>
-                    <hr>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Sidebar -->
+        <div class="col-lg-4 mt-5 mt-lg-0">
+            <!-- Search -->
+            <form class="d-flex mb-4" method="POST" action="/search">
+                {% csrf_token %}
+                <input class="form-control me-2" type="search" name="search" placeholder="Search..." aria-label="Search">
+                <button class="btn btn-outline-primary" type="submit">Search</button>
+            </form>
+
+            <!-- Categories -->
+            <div class="mb-4">
+                <h5 class="text-center">Categories</h5>
+                <div class="list-group">
                     {% for value in categories %}
-                        <a href="/category/{{value|slugify}}">
-                            <p class="fs-6 text-center"><strong class="text-secondary">{{value}}</strong></p>
-                        </a>
+                        <a href="/category/{{ value|slugify }}" class="list-group-item list-group-item-action text-center">{{ value }}</a>
                     {% endfor %}
                 </div>
-                <div class="row d-flex">
-                    <hr>
-                        <p class="fs-3 text-center"><strong>Recent Posts</strong></p>
-                    <hr>
-                    <div class="row d-flex">
+            </div>
+
+            <!-- Recent Posts -->
+            <div>
+                <h5 class="text-center">Recent Posts</h5>
+                <div class="list-group">
                     {% for post in recents %}
-                        <div class="row mt-3">
-                            <div class="col-md-4 text-center">
-                                {% comment %} <a href="/posts/{{post.title|slugify}}"> {% endcomment %}
-                                {% comment %} <form id="imageRecentPosts{{post.id}}" action="/posts/{{post.title|slugify}}" method=POST>
-                                    <input type="hidden" name="post_id" value={{post.id}}>
-                                </form>
-                                <a 
-                                    href="javascript:void(0);"
-                                    onclick="document.getElementById('imageRecentPosts{{post.id}}').submit();"
-                                > {% endcomment %}
-                                <a href="/posts/{{post.slug}}">
-                                    {% if post.thumbnail %}
-                                        <img src="{{post.thumbnail}}" alt="{{post.title}}" class="img-fluid" width="100px">
-                                    {% else %}
-                                        <img src="https://ik.imagekit.io/hivepulse/hivepulse/default/default-post.png" alt="{{post.title}}" class="img-fluid" width="100px">
-                                    {% endif %}
-                                </a>
-                            </div>
-                            <div class="col-md-8 text-center">
-                                {% comment %} <a 
-                                    href="javascript:void(0);"
-                                    onclick="document.getElementById('imageRecentPosts{{post.id}}').submit();"
-                                > {% endcomment %}
-                                <a href="/posts/{{post.slug}}">
-                                {{post.title|slice:":20"}} ...</a>
-                            </div>
+                        <div class="d-flex align-items-center border rounded mb-3 p-2">
+                            <a href="/posts/{{ post.slug }}" class="me-3">
+                                <img src="{{ post.thumbnail|default:'https://ik.imagekit.io/hivepulse/hivepulse/default/default-post.png' }}" alt="{{ post.title }}" class="img-fluid" width="80">
+                            </a>
+                            <a href="/posts/{{ post.slug }}" class="text-dark text-decoration-none">{{ post.title|slice:":25" }}...</a>
                         </div>
                     {% endfor %}
-                    </div>
                 </div>
             </div>
         </div>
     </div>
-<br>
+</div>
 {% endblock body %}

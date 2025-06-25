@@ -15,6 +15,7 @@ from django.contrib.auth import views as auth_views
 from HivePulse.settings import imagekit
 from HivePulse import settings
 from MoviesApp import models as movie_models
+from helpers import knn_movies, knn_shows
 
 # Create your views here.
 
@@ -440,7 +441,7 @@ def user_dashboard(request):
     user_post_none = True
     if user_posts is not None:
         user_post_none = False
-    user_pagination = Paginator(user_posts, 3)
+    user_pagination = Paginator(user_posts, 4)
     user_page = request.GET.get('like_page')
     user_posts = user_pagination.get_page(user_page)
     
@@ -450,7 +451,7 @@ def user_dashboard(request):
     movies_none = True
     if movies_query.exists():
         movies_none = False
-    movie_pagination = Paginator(movies_query, 3)
+    movie_pagination = Paginator(movies_query, 4)
     movie_page = request.GET.get('movie_page')
     movies = movie_pagination.get_page(movie_page)
     
@@ -460,9 +461,47 @@ def user_dashboard(request):
     shows_none = True
     if shows_query.exists():
         shows_none = False
-    show_pagination = Paginator(shows_query, 3)
+    show_pagination = Paginator(shows_query, 4)
     show_page = request.GET.get('show_page')
     shows = show_pagination.get_page(show_page)
+
+    liked_shows_count = shows_query.count()
+    liked_movies_count = movies_query.count()
+
+    k_shows = 4
+    if request.GET.get('k_shows'):
+        print("I got K shows value!")
+        k_shows = int(request.GET.get('k_shows'))
+        if k_shows > liked_shows_count:
+            k_shows=liked_shows_count
+            messages.warning(
+                request,
+                message=f'Recommendation can not be greater total number of liked shows',
+                extra_tags='error'
+            )
+            
+    k_movies = 4
+    if request.GET.get('k_movies'):
+        print("I got K movies value!")
+        k_movies = int(request.GET.get('k_movies'))
+        if k_movies > liked_movies_count:
+            k_movies=liked_movies_count
+            messages.warning(
+                request,
+                message=f'Recommendation can not be greater total number of liked movies',
+                extra_tags='error'
+            )
+    
+    recommended_shows = knn_shows.recommend_shows_knn(
+        user=request.user,
+        k=k_shows
+    )
+    recommended_movies = knn_movies.recommend_movies_knn(
+        user=request.user,
+        k=k_movies
+    )
+    print(recommended_movies)
+
     return render(
         request,
         'AuthApp/dashboard.html',
@@ -475,7 +514,11 @@ def user_dashboard(request):
             'movies': movies,
             'movies_none': movies_none,
             'shows': shows,
-            'shows_none': shows_none
+            'shows_none': shows_none,
+            'recommended_shows': recommended_shows,
+            'recommended_movies': recommended_movies,
+            'liked_shows_count': liked_shows_count,
+            'liked_movies_count': liked_movies_count,
         }
     )
     

@@ -1,5 +1,5 @@
 from .TMDB_API import get_tv_show_details, get_popular_shows
-from MoviesApp.models import LikedShows  # Update this import path
+from MoviesApp.models import LikedShows
 from django.contrib.auth.models import User
 import math
 
@@ -22,7 +22,7 @@ def build_feature_vector(tv_data):
     return [rating] + genre_vector
 
 def recommend_shows_knn(user: User, k=3, max_pool_size=20):
-    liked = LikedShows.objects.filter(liked_by=user)
+    liked = LikedShows.objects.filter(liked_by=user).order_by('-pk')
     liked_show_ids = [s.show_id for s in liked]
     liked_titles = [s.title for s in liked]
 
@@ -33,6 +33,8 @@ def recommend_shows_knn(user: User, k=3, max_pool_size=20):
             liked_vectors.append({
                 'id': show_id,
                 'title': data.get('name'),
+                'poster_path': data.get('poster_path'),
+                'vote_average': data.get('vote_average', 0),
                 'vector': build_feature_vector(data)
             })
 
@@ -42,7 +44,13 @@ def recommend_shows_knn(user: User, k=3, max_pool_size=20):
 
     pool = get_popular_shows(page=1).get("results", [])[:max_pool_size]
     candidates = [
-        {'id': s['id'], 'title': s['name'], 'vector': build_feature_vector(s)}
+        {
+            'id': s['id'],
+            'title': s['name'],
+            'poster_path': s.get('poster_path'),
+            'vote_average': s.get('vote_average', 0),
+            'vector': build_feature_vector(s)
+        }
         for s in pool if s['id'] not in liked_show_ids
     ]
 
@@ -50,7 +58,15 @@ def recommend_shows_knn(user: User, k=3, max_pool_size=20):
     for liked in liked_vectors:
         for cand in candidates:
             dist = euclidean_distance(liked['vector'], cand['vector'])
-            similarity_scores.setdefault(cand['id'], {'title': cand['title'], 'distances': []})
+            similarity_scores.setdefault(
+                cand['id'],
+                {
+                    'title': cand['title'],
+                    'poster_path': cand['poster_path'],
+                    'vote_average': cand['vote_average'],
+                    'distances': []
+                }
+            )
             similarity_scores[cand['id']]['distances'].append(dist)
 
     for sid in similarity_scores:
@@ -62,10 +78,12 @@ def recommend_shows_knn(user: User, k=3, max_pool_size=20):
     print(f"\nTop {k} TV show recommendations for {user.username} (based on: {liked_titles})")
     top_recs = []
     for i, (sid, data) in enumerate(recommended[:k]):
-        print(f"{i+1}. {data['title']} (Similarity Score: {data['score']:.2f})")
-        top_recs.append(data['title'])
+        print(f"{i+1}. {data['title']} (⭐ {data['vote_average']}) | Score: {data['score']:.2f}")
+        top_recs.append({
+            'id': sid,
+            'title': data['title'],
+            'poster_path': data['poster_path'],
+            'vote_average': data['vote_average']
+        })
 
     return top_recs
-
-if __name__ == '__main__':
-    pass
