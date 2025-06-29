@@ -1,12 +1,12 @@
 
+
 # Hive‑Pulse 🎬🧠📰
 
 [![Live Site](https://img.shields.io/badge/Live%20Demo-Hive%20Pulse-brightgreen)](https://hive-pulse-engzc8begwbscgc5.westindia-01.azurewebsites.net/)
 
-
 **Hive‑Pulse** is a full-stack Django web application that combines an intelligent **movie clustering engine**, a **custom CMS-powered blog**, and a **robust user authentication system** — all built from scratch.
 
-It allows users to search for **movies and TV shows** via the TMDB API, like content they enjoy, and get clustered insights using **KMeans or KNN** machine learning algorithms. It also includes a feature-rich blog section and a secure, production-ready authentication workflow.
+It allows users to search for **movies and TV shows** via the TMDB API, like content they enjoy, and get clustered insights using **KNN** machine learning algorithm. It also includes a feature-rich blog section and a secure, production-ready authentication workflow.
 
 ---
 
@@ -26,8 +26,8 @@ It allows users to search for **movies and TV shows** via the TMDB API, like con
 
 * TMDB API–based movie & TV show search
 * Users can **like** content they enjoy
-* ML-based clustering using **KMeans or KNN** to group liked content
-* Personalized discovery experience powered by unsupervised learning
+* ML-based clustering using **KNN** to group liked content
+* Personalized discovery experience powered by instance-based learning
 
 ### 📰 CMS Blog System
 
@@ -113,11 +113,10 @@ TMDB="your_tmdb_api_key"
 
 ## 🧠 Clustering Engine
 
-Hive‑Pulse uses **scikit-learn** (optional, added manually or integrated later) to cluster liked movies/TV shows:
+Hive‑Pulse uses **scikit-learn** to find clusters of liked movies/TV shows using:
 
-* **KMeans**: Groups user favorites into similar clusters
-* **KNN**: Finds neighbors based on movie metadata
-* Works on the backend once user data reaches a minimum threshold
+* **KNN**: Finds nearest neighbors based on movie metadata and user preferences
+* Activates once a user interacts with enough content for meaningful results
 
 ---
 
@@ -198,5 +197,3 @@ Developed by [Usman Shahid](https://github.com/usman-s-mahmood)
 Need help or suggestions? Open an issue or contact me via GitHub.
 
 ---
-
-
