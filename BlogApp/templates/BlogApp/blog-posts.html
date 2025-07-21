@@ -61,6 +61,17 @@
                     </div>
                     {% comment %} <br> {% endcomment %}
                 {% endfor %}
+                <div class="row text-center">
+                    <div>
+                        {% if posts.has_previous %}
+                            <a href="?page={{posts.previous_page_number}}" class="btn btn-primary me-1">Previous</a>
+                        {% endif %}
+                        <span class="text-dark">Page {{posts.number}} of {{posts.paginator.num_pages}}</span>
+                        {% if posts.has_next %}
+                            <a href="?page={{posts.next_page_number}}" class="btn btn-primary">Next</a>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
             <div class="col-md-4">
                 <div class="row">
@@ -130,18 +141,6 @@
                     {% endfor %}
                     </div>
                 </div>
-            </div>
-        </div>
-        <div class="row text-center">
-            <div>
-                {% if posts.has_previous %}
-                    <a href="?page={{posts.previous_page_number}}" class="btn btn-primary me-1">Previous</a>
-                {% endif %}
-                {% comment %} {{posts.number}}
-                {{posts.paginator.num_pages}} {% endcomment %}
-                {% if posts.has_next %}
-                    <a href="?page={{posts.next_page_number}}" class="btn btn-primary">Next</a>
-                {% endif %}
             </div>
         </div>
     </div>

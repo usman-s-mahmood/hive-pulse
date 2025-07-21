@@ -543,6 +543,17 @@ def contact_view(request):
         }
     )
    
+   
+def forbiden_error(request, exception=None):
+    if request.user.is_authenticated or '/auth/login' in request.META.get('HTTP_REFERER', ''): # mechanism to avoid auto-fill conflict of browsers with CSRF Token
+        print(f'User authentication status: {request.user.is_authenticated}\nPrevious Path Info: {request.META.get('HTTP_REFERER', '')}')
+        return redirect('/')
+    return render(
+        request,
+        'BlogApp/403.html',
+        status=403
+    )
+   
 def not_found(request, exception):
     return render(
         request,

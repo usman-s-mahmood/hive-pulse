@@ -76,8 +76,8 @@ def search_movies(request):
             'results': results,
             'query': search,
             'total_results': results['total_results'],
-            'total_pages': results['total_pages'],
-            'current_page': page
+            'total_pages': int(results['total_pages']),
+            'current_page': int(page)
         }
     )
     
@@ -99,8 +99,8 @@ def search_shows(request):
             'results': results,
             'query': search,
             'total_results': results['total_results'],
-            'total_pages': results['total_pages'],
-            'current_page': page
+            'total_pages': int(results['total_pages']),
+            'current_page': int(page)
         }
     )
 
@@ -118,8 +118,8 @@ def popular_movies(request):
             'categories': blog_views.return_categories(),
             'results': results,
             'total_results': results['total_results'],
-            'total_pages': results['total_pages'],
-            'current_page': page,
+            'total_pages': int(results['total_pages']),
+            'current_page': int(page),
             'movie': True
         }
     )
@@ -138,8 +138,8 @@ def popular_shows(request):
             'categories': blog_views.return_categories(),
             'results': results,
             'total_results': results['total_results'],
-            'total_pages': results['total_pages'],
-            'current_page': page,
+            'total_pages': int(results['total_pages']),
+            'current_page': int(page),
             'show': True
         }
     )    

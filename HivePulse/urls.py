@@ -39,3 +39,4 @@ admin.site.site_title = 'CMS Admin Panel'
 
 conf_urls.handler404 = blog_views.not_found
 conf_urls.handler500 = blog_views.server_error
+conf_urls.handler403 = blog_views.forbiden_error
